@@ -1,0 +1,15 @@
+{
+  "name": "محلي - Mahali POS",
+  "short_name": "محلي",
+  "description": "محلي - نظام نقاط البيع للبقالات المغربية المحلية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [],
+  "categories": ["business", "finance", "productivity"],
+  "screenshots": []
+}

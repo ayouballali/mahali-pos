@@ -1,0 +1,1087 @@
+/* ============================================
+   Moroccan Grocery POS - Styles
+   RTL Support for Arabic + Tab Navigation
+   ============================================ */
+
+/* ============================================
+   CSS Reset & Base Styles
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                 sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8fafc;
+    color: #1e293b;
+    direction: rtl;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   App Container
+   ============================================ */
+#app {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* ============================================
+   Content Wrapper (Above Bottom Nav)
+   ============================================ */
+.content-wrapper {
+    flex: 1;
+    padding-bottom: 80px; /* Space for bottom nav */
+    overflow-y: auto;
+}
+
+/* ============================================
+   Tab Content Management
+   ============================================ */
+.tab-content {
+    display: none;
+    padding: 20px;
+    position: relative;
+}
+
+.content-wrapper > .tab-content {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Show active tab */
+#home-tab.active,
+#sell-tab.active,
+#products-tab.active,
+#reports-tab.active,
+#add-product-tab.active {
+    display: block !important;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Bottom Navigation
+   ============================================ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    width: 100%;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+}
+
+.nav-item.active {
+    color: #22c55e;
+}
+
+.nav-item-primary {
+    position: relative;
+}
+
+.nav-item-primary .nav-icon-large {
+    font-size: 28px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -28px;
+    box-shadow: 0 8px 16px rgba(34, 197, 94, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.15s ease-out;
+}
+
+.nav-item-primary:active .nav-icon-large {
+    transform: translateY(2px) scale(0.96);
+    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.2), 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.nav-item-primary .nav-icon-large svg {
+    width: 28px;
+    height: 28px;
+}
+
+.nav-icon {
+    font-size: 24px;
+}
+
+.nav-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ============================================
+   Brand Corner Icon
+   ============================================ */
+.brand-corner {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    color: #22c55e;
+}
+
+.brand-corner:hover {
+    opacity: 0.7;
+}
+
+.brand-corner svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* ============================================
+   Greeting Section
+   ============================================ */
+.greeting {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-top: 20px;
+}
+
+.greeting h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ============================================
+   Summary Card
+   ============================================ */
+.summary-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-header {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+.summary-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.stat {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    direction: ltr;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 60px;
+    background-color: #e2e8f0;
+}
+
+/* ============================================
+   Quick Stats (Home Tab)
+   ============================================ */
+.quick-stats {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 16px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.stat-icon svg {
+    display: block;
+}
+
+.stat-text {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.stat-text-en {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* ============================================
+   Sell Tab (Center Screen)
+   ============================================ */
+.tab-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px);
+}
+
+.sell-screen {
+    text-align: center;
+    max-width: 400px;
+}
+
+.sell-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #22c55e;
+}
+
+.sell-icon svg {
+    width: 80px;
+    height: 80px;
+}
+
+.sell-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+.sell-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 32px;
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+/* Primary Button */
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 20px 24px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 16px;
+    min-height: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-icon-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.btn-icon-inline svg {
+    display: block;
+}
+
+.btn-primary .btn-text {
+    display: inline;
+    font-size: 20px;
+}
+
+.btn-primary .btn-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+/* Primary Outline Button */
+.btn-primary-outline {
+    width: 100%;
+    background: white;
+    color: #22c55e;
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary-outline:active {
+    background-color: #f0fdf4;
+    transform: scale(0.98);
+}
+
+/* Secondary Outline Button */
+.btn-secondary-outline {
+    width: 100%;
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-secondary-outline:active {
+    background-color: #f8fafc;
+    transform: scale(0.98);
+}
+
+.btn-secondary-outline .btn-text {
+    display: inline;
+}
+
+.btn-subtitle-small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* Icon Only Button */
+.btn-icon-only {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.btn-icon-only:active {
+    transform: scale(0.9);
+}
+
+.btn-icon-only svg {
+    display: block;
+}
+
+/* ============================================
+   Tab Headers
+   ============================================ */
+.tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.tab-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* ============================================
+   Empty State (Products Tab)
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.3;
+    color: #64748b;
+}
+
+.empty-icon svg {
+    width: 80px;
+    height: 80px;
+}
+
+.empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.empty-text {
+    font-size: 15px;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+/* ============================================
+   Period Selector (Reports Tab)
+   ============================================ */
+.period-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background-color: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.period-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-btn.active {
+    background-color: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   Report Cards
+   ============================================ */
+.report-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.report-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8fafc;
+    border-radius: 12px;
+    color: #22c55e;
+}
+
+.report-icon svg {
+    display: block;
+}
+
+.report-content {
+    flex: 1;
+}
+
+.report-label {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.report-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    direction: ltr;
+}
+
+.report-percentage {
+    display: inline-block;
+    font-size: 14px;
+    color: #22c55e;
+    font-weight: 600;
+    margin-inline-start: 8px;
+}
+
+/* ============================================
+   Touch Target Improvements
+   ============================================ */
+button {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 400px) {
+    .greeting h1 {
+        font-size: 24px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+
+    .sell-icon {
+        font-size: 64px;
+    }
+
+    .sell-title {
+        font-size: 24px;
+    }
+
+    .nav-label {
+        font-size: 10px;
+    }
+}
+
+/* ============================================
+   Add Product Form
+   ============================================ */
+.add-product-form {
+    padding: 0 20px 100px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group.has-error .form-input {
+    border-color: #ef4444;
+}
+
+.form-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.form-label-optional {
+    font-size: 13px;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-inline-start: 4px;
+}
+
+.form-label-required {
+    color: #ef4444;
+    margin-inline-start: 4px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    color: #1e293b;
+    transition: all 0.2s;
+    direction: ltr;
+    text-align: right;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.form-input::placeholder {
+    color: #cbd5e1;
+}
+
+.form-error {
+    display: block;
+    font-size: 13px;
+    color: #ef4444;
+    margin-top: 6px;
+}
+
+/* Input with Button */
+.input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-button .form-input {
+    flex: 1;
+}
+
+.input-button {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.input-button:active {
+    background: #f1f5f9;
+    transform: scale(0.95);
+}
+
+/* Image Upload & Preview */
+.image-upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.image-upload-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 120px;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.image-upload-option:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.image-upload-option:active {
+    transform: scale(0.98);
+    background: #e2e8f0;
+}
+
+.image-upload-option span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.image-preview {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+}
+
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-image-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.remove-image-btn:active {
+    transform: scale(0.95);
+}
+
+/* Input with Unit */
+.input-with-unit {
+    position: relative;
+}
+
+.input-unit {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    font-weight: 600;
+    color: #64748b;
+    pointer-events: none;
+}
+
+/* Toggle Group */
+.toggle-group {
+    display: flex;
+    gap: 12px;
+}
+
+.toggle-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.toggle-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.toggle-btn.active {
+    background: #f0fdf4;
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.toggle-btn:active {
+    transform: scale(0.97);
+}
+
+/* Profit Preview */
+.profit-preview {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #22c55e;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.profit-preview.negative {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #ef4444;
+}
+
+.profit-preview-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #22c55e;
+    flex-shrink: 0;
+}
+
+.profit-preview.negative .profit-preview-icon {
+    color: #ef4444;
+}
+
+.profit-preview-content {
+    flex: 1;
+}
+
+.profit-preview-label {
+    display: block;
+    font-size: 13px;
+    color: #059669;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.profit-preview.negative .profit-preview-label {
+    color: #dc2626;
+}
+
+.profit-preview-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #047857;
+    direction: ltr;
+    text-align: right;
+}
+
+.profit-preview.negative .profit-preview-value {
+    color: #b91c1c;
+}
+
+.profit-preview-percent {
+    font-size: 16px;
+    font-weight: 600;
+    margin-inline-start: 8px;
+    opacity: 0.8;
+}
+
+/* Form Actions (Fixed Bottom Button) */
+.form-actions {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, #f8fafc 0%, #f8fafc 80%, transparent 100%);
+    z-index: 100;
+}
+
+.form-actions .btn-primary {
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+}
+
+/* ============================================
+   Products List
+   ============================================ */
+.products-list {
+    padding: 0 20px 100px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.product-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.product-type {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.product-prices {
+    text-align: left;
+    direction: ltr;
+}
+
+.product-price-row {
+    margin-bottom: 6px;
+}
+
+.product-price-row:last-child {
+    margin-bottom: 0;
+}
+
+.price-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-left: 8px;
+}
+
+.price-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.price-value.secondary {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Floating Action Button */
+.fab {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border: none;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 500;
+}
+
+.fab svg {
+    width: 28px;
+    height: 28px;
+}
+
+.fab:active {
+    transform: translateX(-50%) scale(0.95);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.hidden {
+    display: none !important;
+}
