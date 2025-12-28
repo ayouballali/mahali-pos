@@ -28,7 +28,7 @@ export function HomeTab({ isActive }) {
     }, []);
 
     // Get stats from mock data
-    const { sales, profit, salesCount, itemsSold } = todayStats;
+    const { sales, profit } = todayStats;
 
     return html`
         <div class="tab-content ${isActive ? 'active' : ''}" id="home-tab">
@@ -40,6 +40,41 @@ export function HomeTab({ isActive }) {
             <!-- Greeting -->
             <div class="greeting">
                 <h1>${greeting}</h1>
+            </div>
+
+            <!-- Main Actions -->
+            <div class="main-actions">
+                <h2 class="section-title">ابدأ البيع (Start Sale)</h2>
+
+                <button class="action-btn action-btn-primary">
+                    <div class="action-icon">
+                        <${Icons.Camera} />
+                    </div>
+                    <div class="action-content">
+                        <div class="action-title">مسح الباركود</div>
+                        <div class="action-subtitle">Scan Barcode</div>
+                    </div>
+                </button>
+
+                <button class="action-btn action-btn-secondary">
+                    <div class="action-icon">
+                        <${Icons.ShoppingCart} />
+                    </div>
+                    <div class="action-content">
+                        <div class="action-title">اختيار يدوي</div>
+                        <div class="action-subtitle">Manual Selection</div>
+                    </div>
+                </button>
+
+                <button class="action-btn action-btn-tertiary">
+                    <div class="action-icon">
+                        <${Icons.Receipt} />
+                    </div>
+                    <div class="action-content">
+                        <div class="action-title">تسجيل سريع</div>
+                        <div class="action-subtitle">Quick Cash In</div>
+                    </div>
+                </button>
             </div>
 
             <!-- Today's Summary Card -->
@@ -55,25 +90,6 @@ export function HomeTab({ isActive }) {
                         <div class="stat-value">${formatCurrency(profit, { decimals: 0 })}</div>
                         <div class="stat-label">الربح<br />(Profit)</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="quick-stats">
-                <h2 class="section-title">النشاط اليوم (Today's Activity)</h2>
-                <div class="stat-row">
-                    <span class="stat-icon">
-                        <${Icons.ShoppingCart} />
-                    </span>
-                    <span class="stat-text">${salesCount} عملية بيع</span>
-                    <span class="stat-text-en">(${salesCount} sales)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-icon">
-                        <${Icons.Package} />
-                    </span>
-                    <span class="stat-text">${itemsSold} منتج مباع</span>
-                    <span class="stat-text-en">(${itemsSold} items sold)</span>
                 </div>
             </div>
         </div>

@@ -41,6 +41,58 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         }
     }, [isActive, showAddProduct]);
 
+    // Handle Android back button for add product form
+    useEffect(() => {
+        if (showAddProduct) {
+            // Add a history entry when opening add product form
+            window.history.pushState({ addProductOpen: true }, '');
+
+            // Handle back button
+            const handlePopState = () => {
+                if (hasUnsavedChanges) {
+                    // Show confirmation dialog
+                    setShowConfirmDialog(true);
+                    setPendingNavigation('back-button');
+                    // Push state back so we stay on the page until user confirms
+                    window.history.pushState({ addProductOpen: true }, '');
+                } else {
+                    // No unsaved changes - just close the form
+                    setShowAddProduct(false);
+                }
+            };
+
+            window.addEventListener('popstate', handlePopState);
+
+            // Cleanup
+            return () => {
+                window.removeEventListener('popstate', handlePopState);
+            };
+        }
+    }, [showAddProduct, hasUnsavedChanges]);
+
+    // Handle Android back button for search bar
+    useEffect(() => {
+        if (showSearch && !showAddProduct) {
+            // Add a history entry when opening search
+            window.history.pushState({ searchOpen: true }, '');
+
+            // Handle back button
+            const handlePopState = () => {
+                // Close the search bar
+                setShowSearch(false);
+                setSearchQuery('');
+                setFilteredProducts(products);
+            };
+
+            window.addEventListener('popstate', handlePopState);
+
+            // Cleanup
+            return () => {
+                window.removeEventListener('popstate', handlePopState);
+            };
+        }
+    }, [showSearch, showAddProduct, products]);
+
     // Register/unregister navigation guard
     useEffect(() => {
         if (showAddProduct && hasUnsavedChanges && setCanNavigateAway) {

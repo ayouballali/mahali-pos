@@ -298,6 +298,116 @@ body {
 }
 
 /* ============================================
+   Main Actions (Home Tab)
+   ============================================ */
+.main-actions {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: right;
+}
+
+.action-btn:last-child {
+    margin-bottom: 0;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+.action-btn-primary {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #22c55e;
+    color: white;
+}
+
+.action-btn-primary .action-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.action-btn-secondary {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.action-btn-secondary:active {
+    background: #f1f5f9;
+}
+
+.action-btn-tertiary {
+    background: #fef3c7;
+    border-color: #fde047;
+}
+
+.action-btn-tertiary .action-icon {
+    background: #fde047;
+    color: #854d0e;
+}
+
+.action-btn-tertiary:active {
+    background: #fde68a;
+}
+
+.action-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border-radius: 12px;
+    color: #64748b;
+}
+
+.action-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.action-content {
+    flex: 1;
+    text-align: right;
+}
+
+.action-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: inherit;
+    margin-bottom: 2px;
+}
+
+.action-btn-primary .action-title {
+    color: white;
+}
+
+.action-subtitle {
+    font-size: 14px;
+    color: inherit;
+    opacity: 0.7;
+}
+
+.action-btn-primary .action-subtitle {
+    color: white;
+}
+
+/* ============================================
    Sell Tab (Center Screen)
    ============================================ */
 .tab-center {
