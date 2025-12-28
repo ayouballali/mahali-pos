@@ -132,6 +132,7 @@ body {
     align-items: center;
     justify-content: center;
     margin-top: -28px;
+    color: white;
     box-shadow: 0 8px 16px rgba(34, 197, 94, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.15s ease-out;
 }
@@ -1314,6 +1315,445 @@ button {
 
 .dialog-btn-confirm:active {
     background: #dc2626;
+    transform: scale(0.98);
+}
+
+/* ============================================
+   Sell Tab - Loyverse Style
+   ============================================ */
+
+/* Sell Header with Search */
+.sell-header {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sell-search {
+    flex: 1;
+    height: 48px;
+    padding: 0 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.sell-search:focus {
+    outline: none;
+    border-color: #22c55e;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.scan-btn {
+    width: 48px;
+    height: 48px;
+    background: #22c55e;
+    color: white;
+    border-radius: 12px;
+}
+
+.scan-btn:active {
+    background: #16a34a;
+}
+
+/* Products List */
+.sell-products-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 100px;
+}
+
+.sell-product-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sell-product-item:active {
+    background: #f8fafc;
+}
+
+.sell-product-item.in-cart {
+    background: #f0fdf4;
+}
+
+.sell-product-image {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+.sell-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sell-product-image svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sell-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sell-product-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.sell-product-price {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.sell-product-badge {
+    width: 32px;
+    height: 32px;
+    background: #22c55e;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Cart Bar (Bottom) */
+.sell-cart-bar {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.cart-summary-info {
+    flex: 1;
+}
+
+.cart-items-count {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.cart-total-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.btn-view-cart {
+    padding: 12px 24px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-view-cart:active {
+    background: #16a34a;
+    transform: scale(0.98);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-container {
+    background: white;
+    max-width: 600px;
+    width: 100%;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modal-header .btn-icon-only {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 28px;
+    font-weight: 300;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.btn-text-save {
+    background: none;
+    border: none;
+    color: #22c55e;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.btn-text-save:active {
+    opacity: 0.7;
+}
+
+/* Cart Modal */
+.cart-items-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.cart-item-row {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.cart-item-row:active {
+    background: #f8fafc;
+}
+
+.cart-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-item-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.cart-item-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.cart-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.cart-total-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.btn-charge {
+    width: 100%;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 18px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+}
+
+.btn-charge:active {
+    transform: scale(0.98);
+}
+
+.btn-charge:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-cancel-sale {
+    width: 100%;
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+}
+
+.btn-cancel-sale:active {
+    background: #f8fafc;
+    transform: scale(0.98);
+}
+
+/* Item Editor Modal */
+.item-editor-body {
+    padding: 24px 20px;
+}
+
+.editor-section {
+    margin-bottom: 24px;
+}
+
+.editor-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    direction: ltr; /* Force LTR for -/input/+ layout */
+}
+
+.quantity-controls .qty-btn {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: 400;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls .qty-btn:active {
+    background: #f1f5f9;
+    transform: scale(0.95);
+}
+
+.qty-input {
+    flex: 1;
+    min-width: 0;
+    height: 64px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    direction: ltr;
+}
+
+.qty-input:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.btn-remove {
+    width: 100%;
+    background: white;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-remove:active {
+    background: #fee2e2;
     transform: scale(0.98);
 }
 

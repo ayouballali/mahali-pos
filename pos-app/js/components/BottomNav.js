@@ -11,7 +11,7 @@ export function BottomNav({ activeTab, onTabChange }) {
     const navItems = [
         { id: 'home-tab', icon: Icons.Home, label: 'الرئيسية', isPrimary: false },
         { id: 'products-tab', icon: Icons.Package, label: 'المنتجات', isPrimary: false },
-        { id: 'sell-tab', icon: Icons.Camera, label: 'بيع', isPrimary: true },
+        { id: 'sell-tab', icon: Icons.ShoppingCart, label: 'بيع', isPrimary: true },
         { id: 'reports-tab', icon: Icons.BarChart, label: 'التقارير', isPrimary: false },
         { id: 'settings-tab', icon: Icons.Settings, label: 'الإعدادات', isPrimary: false },
     ];
