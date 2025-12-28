@@ -5,7 +5,7 @@
  * @version 1.0.0
  */
 
-import { html, useState } from '../lib/preact.js';
+import { html, useState, useEffect } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { formatCurrency, calculateProfitMargin, vibrate } from '../utils/helpers.js';
 
@@ -14,10 +14,10 @@ import { formatCurrency, calculateProfitMargin, vibrate } from '../utils/helpers
  * @param {Object} props
  * @param {Function} props.onBack - Callback to return to products list
  * @param {Function} props.onSave - Callback when product is saved
+ * @param {Function} props.onUnsavedChangesUpdate - Callback to notify parent of unsaved changes
  * @returns {import('preact').VNode}
  */
-export function AddProductTab({ onBack, onSave }) {
-    console.log('AddProductTab rendered!');
+export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
 
     // Form state
     const [barcode, setBarcode] = useState('');
@@ -33,6 +33,14 @@ export function AddProductTab({ onBack, onSave }) {
     const sale = parseFloat(salePrice) || 0;
     const profit = sale - cost;
     const profitMargin = calculateProfitMargin(cost, sale);
+
+    // Notify parent about unsaved changes whenever form data changes
+    useEffect(() => {
+        const hasChanges = !!(barcode || productName || costPrice || salePrice || productImage);
+        if (onUnsavedChangesUpdate) {
+            onUnsavedChangesUpdate(hasChanges);
+        }
+    }, [barcode, productName, costPrice, salePrice, productImage, onUnsavedChangesUpdate]);
 
     /**
      * Validate form
@@ -160,11 +168,19 @@ export function AddProductTab({ onBack, onSave }) {
         vibrate();
     };
 
+    /**
+     * Handle back button with unsaved changes check
+     */
+    const handleBackClick = () => {
+        const hasUnsavedChanges = !!(barcode || productName || costPrice || salePrice || productImage);
+        onBack(hasUnsavedChanges);
+    };
+
     return html`
         <div class="tab-content active" id="add-product-tab">
             <!-- Header -->
             <div class="tab-header">
-                <button class="btn-icon-only" onClick=${onBack}>
+                <button class="btn-icon-only" onClick=${handleBackClick}>
                     <${Icons.ArrowRight} />
                 </button>
                 <h2 class="tab-title">إضافة منتج</h2>
@@ -341,8 +357,7 @@ export function AddProductTab({ onBack, onSave }) {
             <!-- Save Button (Fixed at Bottom) -->
             <div class="form-actions">
                 <button class="btn-primary" onClick=${handleSave}>
-                    <${Icons.Plus} />
-                    <span>حفظ المنتج</span>
+                    حفظ المنتج
                 </button>
             </div>
         </div>

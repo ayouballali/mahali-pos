@@ -19,15 +19,39 @@ import { BottomNav } from './components/BottomNav.js';
  */
 function App() {
     const [activeTab, setActiveTab] = useState('home-tab');
+    const [canNavigateAway, setCanNavigateAway] = useState(null);
+    const [pendingTab, setPendingTab] = useState(null);
+
+    const handleTabChange = (newTab) => {
+        // If we have a navigation guard, ask it first
+        if (canNavigateAway) {
+            setPendingTab(newTab);
+            const canNavigate = canNavigateAway();
+            if (!canNavigate) return; // Blocked - waiting for user confirmation
+        }
+        setActiveTab(newTab);
+    };
+
+    // Function for ProductsTab to confirm navigation
+    const confirmNavigation = () => {
+        if (pendingTab) {
+            setActiveTab(pendingTab);
+            setPendingTab(null);
+        }
+    };
 
     return html`
         <div class="content-wrapper">
             <${HomeTab} isActive=${activeTab === 'home-tab'} />
             <${SellTab} isActive=${activeTab === 'sell-tab'} />
-            <${ProductsTab} isActive=${activeTab === 'products-tab'} />
+            <${ProductsTab}
+                isActive=${activeTab === 'products-tab'}
+                setCanNavigateAway=${setCanNavigateAway}
+                confirmNavigation=${confirmNavigation}
+            />
             <${ReportsTab} isActive=${activeTab === 'reports-tab'} />
         </div>
-        <${BottomNav} activeTab=${activeTab} onTabChange=${setActiveTab} />
+        <${BottomNav} activeTab=${activeTab} onTabChange=${handleTabChange} />
     `;
 }
 

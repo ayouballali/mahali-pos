@@ -489,6 +489,59 @@ body {
     color: #1e293b;
 }
 
+.tab-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tab-header-actions .btn-icon-only {
+    padding: 10px;
+}
+
+.tab-header-actions .btn-icon-only:first-child {
+    background: #22c55e;
+    color: white;
+    border-radius: 8px;
+}
+
+.tab-header-actions .btn-icon-only:first-child:active {
+    background: #16a34a;
+}
+
+.tab-header-actions .btn-icon-only svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Search Container */
+.search-container {
+    padding: 0 20px 16px;
+    margin-top: -8px;
+}
+
+.search-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    color: #1e293b;
+    background: white;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.search-input::placeholder {
+    color: #94a3b8;
+}
+
 /* ============================================
    Empty State (Products Tab)
    ============================================ */
@@ -648,7 +701,7 @@ button {
    Add Product Form
    ============================================ */
 .add-product-form {
-    padding: 0 20px 100px;
+    padding: 0 20px 10px;
 }
 
 .form-group {
@@ -769,6 +822,12 @@ button {
 .image-upload-option:active {
     transform: scale(0.98);
     background: #e2e8f0;
+}
+
+.image-upload-option svg {
+    width: 32px;
+    height: 32px;
+    color: #64748b;
 }
 
 .image-upload-option span {
@@ -944,50 +1003,49 @@ button {
     opacity: 0.8;
 }
 
-/* Form Actions (Fixed Bottom Button) */
+/* Form Actions (Button) */
 .form-actions {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 600px;
-    width: 100%;
-    padding: 20px;
-    background: linear-gradient(to top, #f8fafc 0%, #f8fafc 80%, transparent 100%);
-    z-index: 100;
+    padding: 24px 20px 100px;
 }
 
 .form-actions .btn-primary {
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+    height: 56px;
+    font-size: 17px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ============================================
    Products List
    ============================================ */
 .products-list {
-    padding: 0 20px 100px;
+    padding: 0 0 100px;
 }
 
 .product-card {
     background: white;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    padding: 16px 20px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     gap: 16px;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .product-image {
     flex-shrink: 0;
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
     overflow: hidden;
     background: #f8fafc;
-    border: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .product-image img {
@@ -998,85 +1056,155 @@ button {
 
 .product-info {
     flex: 1;
+    min-width: 0;
 }
 
 .product-name {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 4px;
-}
-
-.product-type {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 500;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 4px 10px;
-    border-radius: 6px;
-}
-
-.product-prices {
-    text-align: left;
-    direction: ltr;
-}
-
-.product-price-row {
-    margin-bottom: 6px;
-}
-
-.product-price-row:last-child {
-    margin-bottom: 0;
-}
-
-.price-label {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-left: 8px;
-}
-
-.price-value {
     font-size: 16px;
-    font-weight: 700;
-    color: #22c55e;
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 2px;
 }
 
-.price-value.secondary {
+.product-stock {
     font-size: 14px;
     color: #64748b;
-    font-weight: 600;
 }
 
-/* Floating Action Button */
-.fab {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
+.product-price {
+    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1e293b;
+    text-align: right;
+}
+
+/* Add Product Inline Button */
+.add-product-inline-btn {
+    width: 100%;
+    height: 56px;
+    border-radius: 16px;
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     border: none;
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     color: white;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    z-index: 500;
+    margin-bottom: 20px;
 }
 
-.fab svg {
-    width: 28px;
-    height: 28px;
+.add-product-inline-btn svg {
+    width: 22px;
+    height: 22px;
 }
 
-.fab:active {
-    transform: translateX(-50%) scale(0.95);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+.add-product-inline-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+/* ============================================
+   Confirmation Dialog
+   ============================================ */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: dialogFadeIn 0.2s ease-out;
+}
+
+@keyframes dialogFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.dialog-container {
+    background: white;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: dialogSlideUp 0.3s ease-out;
+    overflow: hidden;
+}
+
+@keyframes dialogSlideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.dialog-content {
+    padding: 24px;
+}
+
+.dialog-message {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #334155;
+    text-align: center;
+    margin: 0;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px 24px;
+}
+
+.dialog-btn {
+    flex: 1;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dialog-btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.dialog-btn-cancel:active {
+    background: #e2e8f0;
+    transform: scale(0.98);
+}
+
+.dialog-btn-confirm {
+    background: #ef4444;
+    color: white;
+}
+
+.dialog-btn-confirm:active {
+    background: #dc2626;
+    transform: scale(0.98);
 }
 
 /* ============================================
