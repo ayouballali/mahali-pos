@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+<canvas id="canvas512" width="512" height="512"></canvas>
+<canvas id="canvas192" width="192" height="192"></canvas>
+<script>
+// 512x512 icon
+const canvas512 = document.getElementById('canvas512');
+const ctx512 = canvas512.getContext('2d');
+ctx512.fillStyle = '#22c55e';
+ctx512.beginPath();
+ctx512.roundRect(0, 0, 512, 512, 128);
+ctx512.fill();
+ctx512.fillStyle = 'white';
+ctx512.font = 'bold 280px system-ui, sans-serif';
+ctx512.textAlign = 'center';
+ctx512.textBaseline = 'middle';
+ctx512.fillText('م', 256, 280);
+const link512 = document.createElement('a');
+link512.download = 'icon-512.png';
+link512.href = canvas512.toDataURL();
+link512.click();
+
+// 192x192 icon
+const canvas192 = document.getElementById('canvas192');
+const ctx192 = canvas192.getContext('2d');
+ctx192.fillStyle = '#22c55e';
+ctx192.beginPath();
+ctx192.roundRect(0, 0, 192, 192, 48);
+ctx192.fill();
+ctx192.fillStyle = 'white';
+ctx192.font = 'bold 100px system-ui, sans-serif';
+ctx192.textAlign = 'center';
+ctx192.textBaseline = 'middle';
+ctx192.fillText('م', 96, 105);
+const link192 = document.createElement('a');
+link192.download = 'icon-192.png';
+link192.href = canvas192.toDataURL();
+link192.click();
+</script>
+</body>
+</html>

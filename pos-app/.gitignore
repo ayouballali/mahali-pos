@@ -1,0 +1,12 @@
+
+# SSL Certificates (local development)
+cert.pem
+key.pem
+serve-https.py
+
+# Vercel
+.vercel
+
+# Development
+node_modules
+.DS_Store

@@ -9,6 +9,7 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
@@ -19,5 +20,43 @@
 
     <!-- Preact from CDN (no build tools needed!) -->
     <script type="module" src="js/app.js"></script>
+
+    <!-- Register Service Worker for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                    .catch(err => console.error('❌ Service Worker registration failed:', err));
+            });
+        }
+
+        // Listen for install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('✅ beforeinstallprompt event fired - App is installable!');
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show install banner after 3 seconds
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('✅ User accepted the install prompt');
+                        } else {
+                            console.log('❌ User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 3000);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA was installed successfully!');
+        });
+    </script>
 </body>
 </html>
