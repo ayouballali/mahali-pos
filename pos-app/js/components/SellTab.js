@@ -5,10 +5,12 @@
  * @version 2.0.0
  */
 
-import { html, useState, useEffect } from '../lib/preact.js';
+import { html, useState } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { productDB, transactionDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
+import { useProducts } from '../hooks/useProducts.js';
+import { useProductSearch } from '../hooks/useProductSearch.js';
 
 /**
  * Sell Tab Component
@@ -17,47 +19,11 @@ import { formatCurrency, vibrate } from '../utils/helpers.js';
  * @returns {import('preact').VNode}
  */
 export function SellTab({ isActive }) {
-    const [products, setProducts] = useState([]);
+    const { products, loading, reloadProducts } = useProducts();
+    const { searchQuery, filteredProducts, handleSearch } = useProductSearch(products);
     const [cart, setCart] = useState([]); // Array of { product, quantity }
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null); // For quantity editor
     const [isProcessing, setIsProcessing] = useState(false);
-
-    // Load products
-    useEffect(() => {
-        if (isActive) {
-            loadProducts();
-        }
-    }, [isActive]);
-
-    const loadProducts = async () => {
-        try {
-            const allProducts = await productDB.getAll();
-            setProducts(allProducts);
-            setFilteredProducts(allProducts);
-        } catch (error) {
-            console.error('Error loading products:', error);
-            setProducts([]);
-            setFilteredProducts([]);
-        }
-    };
-
-    // Search products
-    const handleSearch = (query) => {
-        setSearchQuery(query);
-        if (!query.trim()) {
-            setFilteredProducts(products);
-            return;
-        }
-
-        const lowerQuery = query.toLowerCase();
-        const filtered = products.filter(product =>
-            product.name.toLowerCase().includes(lowerQuery) ||
-            (product.barcode && product.barcode.includes(query))
-        );
-        setFilteredProducts(filtered);
-    };
 
     // Add product to cart
     const addToCart = (product) => {
@@ -120,7 +86,7 @@ export function SellTab({ isActive }) {
         vibrate();
         setCart([]);
         setSelectedItem(null);
-        setSearchQuery('');
+        handleSearch('');
     };
 
     // Calculate totals
@@ -166,10 +132,10 @@ export function SellTab({ isActive }) {
 
             // Clear cart
             setCart([]);
-            setSearchQuery('');
+            handleSearch('');
 
             // Reload products to refresh stock
-            loadProducts();
+            reloadProducts();
 
         } catch (error) {
             console.error('Error completing sale:', error);

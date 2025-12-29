@@ -3,7 +3,7 @@
  * Enables offline functionality and app installation
  */
 
-const CACHE_NAME = 'mahali-pos-v3';
+const CACHE_NAME = 'mahali-pos-v4';
 const urlsToCache = [
     './',
     './index.html',
@@ -13,6 +13,8 @@ const urlsToCache = [
     './js/lib/db.js',
     './js/utils/helpers.js',
     './js/data/mockData.js',
+    './js/hooks/useProducts.js',
+    './js/hooks/useProductSearch.js',
     './js/components/Icons.js',
     './js/components/BottomNav.js',
     './js/components/HomeTab.js',

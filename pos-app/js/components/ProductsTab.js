@@ -11,6 +11,8 @@ import { AddProductTab } from './AddProductTab.js';
 import { ConfirmDialog } from './ConfirmDialog.js';
 import { productDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
+import { useProducts } from '../hooks/useProducts.js';
+import { useProductSearch } from '../hooks/useProductSearch.js';
 
 /**
  * Products Tab Component
@@ -21,12 +23,10 @@ import { formatCurrency, vibrate } from '../utils/helpers.js';
  * @returns {import('preact').VNode}
  */
 export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation }) {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { products, loading, reloadProducts } = useProducts();
+    const { searchQuery, filteredProducts, handleSearch } = useProductSearch(products);
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filteredProducts, setFilteredProducts] = useState([]);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
@@ -80,8 +80,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
             const handlePopState = () => {
                 // Close the search bar
                 setShowSearch(false);
-                setSearchQuery('');
-                setFilteredProducts(products);
+                handleSearch('');
             };
 
             window.addEventListener('popstate', handlePopState);
@@ -115,49 +114,6 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         };
     }, [showAddProduct, hasUnsavedChanges, setCanNavigateAway]);
 
-    // Load products from IndexedDB
-    useEffect(() => {
-        if (isActive) {
-            loadProducts();
-        }
-    }, [isActive]);
-
-    /**
-     * Load all products from database
-     */
-    const loadProducts = async () => {
-        try {
-            setLoading(true);
-            const allProducts = await productDB.getAll();
-            setProducts(allProducts);
-            setFilteredProducts(allProducts);
-        } catch (error) {
-            console.error('Error loading products:', error);
-            // Fail gracefully - show empty state
-            setProducts([]);
-            setFilteredProducts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    /**
-     * Handle search query changes
-     */
-    const handleSearch = (query) => {
-        setSearchQuery(query);
-        if (!query.trim()) {
-            setFilteredProducts(products);
-            return;
-        }
-
-        const lowerQuery = query.toLowerCase();
-        const filtered = products.filter(product =>
-            product.name.toLowerCase().includes(lowerQuery) ||
-            (product.barcode && product.barcode.includes(query))
-        );
-        setFilteredProducts(filtered);
-    };
 
     /**
      * Toggle search visibility
@@ -166,8 +122,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         vibrate();
         setShowSearch(!showSearch);
         if (showSearch) {
-            setSearchQuery('');
-            setFilteredProducts(products);
+            handleSearch('');
         }
     };
 
@@ -225,7 +180,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
     const handleSaveProduct = async (product) => {
         try {
             await productDB.add(product);
-            await loadProducts();
+            await reloadProducts();
             setShowAddProduct(false);
             setHasUnsavedChanges(false);
             vibrate();
