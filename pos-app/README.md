@@ -1,4 +1,12 @@
-# Moroccan Grocery POS - Testing Guide
+# Mahali POS - محلي
+
+**Live App:** https://pos-app-five-blond.vercel.app
+
+A modern Point of Sale system for Moroccan grocery stores.
+
+---
+
+# Testing Guide
 
 ## 📱 How to Test on Your Phone
 
