@@ -70,28 +70,6 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         }
     }, [showAddProduct, hasUnsavedChanges]);
 
-    // Handle Android back button for search bar
-    useEffect(() => {
-        if (showSearch && !showAddProduct) {
-            // Add a history entry when opening search
-            window.history.pushState({ searchOpen: true }, '');
-
-            // Handle back button
-            const handlePopState = () => {
-                // Close the search bar
-                setShowSearch(false);
-                handleSearch('');
-            };
-
-            window.addEventListener('popstate', handlePopState);
-
-            // Cleanup
-            return () => {
-                window.removeEventListener('popstate', handlePopState);
-            };
-        }
-    }, [showSearch, showAddProduct, products]);
-
     // Register/unregister navigation guard
     useEffect(() => {
         if (showAddProduct && hasUnsavedChanges && setCanNavigateAway) {
@@ -114,17 +92,6 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         };
     }, [showAddProduct, hasUnsavedChanges, setCanNavigateAway]);
 
-
-    /**
-     * Toggle search visibility
-     */
-    const toggleSearch = () => {
-        vibrate();
-        setShowSearch(!showSearch);
-        if (showSearch) {
-            handleSearch('');
-        }
-    };
 
     /**
      * Handle add product button
@@ -223,10 +190,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
             <div class="tab-header">
                 <h2 class="tab-title">المنتجات</h2>
                 <div class="tab-header-actions">
-                    <button class="btn-icon-only" onClick=${handleAddClick}>
-                        <${Icons.Plus} />
-                    </button>
-                    <button class="btn-icon-only" onClick=${toggleSearch}>
+                    <button class="btn-icon-only" onClick=${() => { vibrate(); setShowSearch(!showSearch); if (showSearch) handleSearch(''); }}>
                         <${Icons.Search} />
                     </button>
                 </div>
@@ -297,6 +261,16 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                     onCancel=${handleCancelDiscard}
                 />
             `}
+
+            <!-- FAB -->
+            <button
+                class="fab"
+                onClick=${handleAddClick}
+                title="إضافة منتج"
+            >
+                <span>إضافة</span>
+                <${Icons.Plus} />
+            </button>
         </div>
     `;
 }

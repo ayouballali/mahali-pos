@@ -57,9 +57,7 @@ body {
     position: relative;
 }
 
-.content-wrapper > .tab-content {
-    animation: fadeIn 0.2s ease-in-out;
-}
+/* No animation - prevents FAB jumping */
 
 /* Show active tab */
 #home-tab.active,
@@ -70,22 +68,11 @@ body {
     display: block !important;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* ============================================
    Bottom Navigation
    ============================================ */
 .bottom-nav {
-    position: fixed;
+    position: fixed !important;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -162,7 +149,7 @@ body {
 .brand-corner {
     position: absolute;
     top: 16px;
-    right: 16px;
+    right: 16px !important;
     opacity: 0.4;
     transition: opacity 0.2s;
     color: #22c55e;
@@ -1224,7 +1211,7 @@ button {
    Confirmation Dialog
    ============================================ */
 .dialog-overlay {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
@@ -1366,7 +1353,7 @@ button {
 .sell-products-list {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 100px;
+    padding-bottom: 100px !important;
 }
 
 .sell-product-item {
@@ -1444,7 +1431,7 @@ button {
 
 /* Cart Bar (Bottom) */
 .sell-cart-bar {
-    position: fixed;
+    position: fixed !important;
     bottom: 80px;
     left: 50%;
     transform: translateX(-50%);
@@ -1495,7 +1482,7 @@ button {
 
 /* Modal Overlay */
 .modal-overlay {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
@@ -1758,8 +1745,48 @@ button {
 }
 
 /* ============================================
+   Floating Action Button (FAB)
+   ============================================ */
+.fab {
+    position: fixed !important;
+    bottom: 100px !important;
+    right: 16px !important;
+    padding: 10px 18px;
+    border-radius: 24px;
+    background: white;
+    color: #22c55e;
+    border: 2px solid #22c55e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+    white-space: nowrap;
+    direction: ltr;
+    /* No animation or transition */
+    animation: none !important;
+    transition: none !important;
+}
+
+.fab:active {
+    background: #f0fdf4;
+}
+
+.fab svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ============================================
    Utility Classes
    ============================================ */
 .hidden {
+    display: none !important;
+}
+
+.fab-hidden {
     display: none !important;
 }
