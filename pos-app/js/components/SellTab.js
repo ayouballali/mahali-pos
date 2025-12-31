@@ -1,11 +1,11 @@
 /**
  * Sell Tab Component - Loyverse Style
- * Product list with cart system
+ * Product list with cart system and scanner modal
  *
- * @version 2.0.0
+ * @version 2.1.0
  */
 
-import { html, useState } from '../lib/preact.js';
+import { html, useState, useEffect } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { productDB, transactionDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
@@ -24,6 +24,128 @@ export function SellTab({ isActive }) {
     const [cart, setCart] = useState([]); // Array of { product, quantity }
     const [selectedItem, setSelectedItem] = useState(null); // For quantity editor
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showScanner, setShowScanner] = useState(false);
+    const [scannerActive, setScannerActive] = useState(false);
+    const [lastScanned, setLastScanned] = useState(null);
+
+    // Stop scanner when modal closes or tab becomes inactive
+    useEffect(() => {
+        if (!showScanner || !isActive) {
+            stopScanner();
+        }
+    }, [showScanner, isActive]);
+
+    // Scanner functions
+    const openScanner = () => {
+        vibrate();
+        setShowScanner(true);
+        // Start scanner after modal renders
+        setTimeout(() => startScanner(), 200);
+    };
+
+    const closeScanner = () => {
+        stopScanner();
+        setShowScanner(false);
+    };
+
+    const startScanner = async () => {
+        try {
+            const video = document.getElementById('scanner-video');
+            if (!video) {
+                console.log('Video element not found');
+                return;
+            }
+
+            // Check if running on secure context (HTTPS or localhost)
+            if (!window.isSecureContext) {
+                console.log('Not a secure context - camera requires HTTPS');
+                alert('الكاميرا تتطلب اتصال آمن (HTTPS)\nCamera requires HTTPS connection');
+                return;
+            }
+
+            // Check if camera is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.log('Camera API not supported');
+                alert('الكاميرا غير مدعومة في هذا المتصفح');
+                return;
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            video.srcObject = stream;
+            await video.play();
+            setScannerActive(true);
+            console.log('Scanner started successfully');
+
+            // Start barcode detection if available
+            if ('BarcodeDetector' in window) {
+                detectBarcodes(video);
+            }
+        } catch (err) {
+            console.log('Camera error:', err.name, err.message);
+            setScannerActive(false);
+
+            if (err.name === 'NotAllowedError') {
+                alert('يرجى السماح بالوصول للكاميرا');
+            } else if (err.name === 'NotFoundError') {
+                alert('لا توجد كاميرا متاحة');
+            }
+        }
+    };
+
+    const stopScanner = () => {
+        const video = document.getElementById('scanner-video');
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        setScannerActive(false);
+    };
+
+    // Barcode detection loop
+    const detectBarcodes = async (video) => {
+        const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'qr_code'] });
+
+        const detect = async () => {
+            if (!video.srcObject) return;
+
+            try {
+                const barcodes = await detector.detect(video);
+                if (barcodes.length > 0) {
+                    const code = barcodes[0].rawValue;
+                    handleBarcodeScanned(code);
+                }
+            } catch (e) {
+                // Detection failed, continue
+            }
+
+            if (video.srcObject) {
+                requestAnimationFrame(detect);
+            }
+        };
+
+        detect();
+    };
+
+    // Handle scanned barcode
+    const handleBarcodeScanned = (barcode) => {
+        // Prevent duplicate scans within 2 seconds
+        if (lastScanned === barcode) return;
+        setLastScanned(barcode);
+        setTimeout(() => setLastScanned(null), 2000);
+
+        // Find product by barcode
+        const product = products.find(p => p.barcode === barcode);
+
+        if (product) {
+            vibrate();
+            addToCart(product);
+        } else {
+            vibrate([100, 50, 100]);
+            alert(`منتج غير موجود\nBarcode: ${barcode}`);
+        }
+    };
 
     // Add product to cart
     const addToCart = (product) => {
@@ -32,14 +154,12 @@ export function SellTab({ isActive }) {
             const existingItem = currentCart.find(item => item.product.id === product.id);
 
             if (existingItem) {
-                // Increment quantity
                 return currentCart.map(item =>
                     item.product.id === product.id
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             } else {
-                // Add new item
                 return [...currentCart, { product, quantity: 1 }];
             }
         });
@@ -104,7 +224,6 @@ export function SellTab({ isActive }) {
         vibrate();
 
         try {
-            // Create transaction
             const transaction = {
                 items: cart.map(item => ({
                     productId: item.product.id,
@@ -127,14 +246,9 @@ export function SellTab({ isActive }) {
                 await productDB.update(product.id, { stock: newStock });
             }
 
-            // Show success
             alert(`✓ تم البيع\n${formatCurrency(subtotal)}`);
-
-            // Clear cart
             setCart([]);
             handleSearch('');
-
-            // Reload products to refresh stock
             reloadProducts();
 
         } catch (error) {
@@ -162,7 +276,7 @@ export function SellTab({ isActive }) {
                     value=${searchQuery}
                     onInput=${(e) => handleSearch(e.target.value)}
                 />
-                <button class="btn-icon-only scan-btn">
+                <button class="btn-icon-only scan-btn" onClick=${openScanner}>
                     <${Icons.Barcode} />
                 </button>
             </div>
@@ -203,99 +317,96 @@ export function SellTab({ isActive }) {
                 })}
             </div>
 
-            <!-- Cart Bar (Bottom) -->
+            <!-- Cart Bar -->
             ${cart.length > 0 && html`
-                <div class="sell-cart-bar">
-                    <div class="cart-summary-info">
-                        <div class="cart-items-count">${totalItems} عناصر</div>
-                        <div class="cart-total-amount">${formatCurrency(subtotal)}</div>
+                <div class="sell-cart-bar" onClick=${() => setSelectedItem(cart[0])}>
+                    <div class="sell-cart-info">
+                        <span class="sell-cart-count">${totalItems} منتج</span>
+                        <span class="sell-cart-total">${formatCurrency(subtotal)}</span>
                     </div>
-                    <button class="btn-view-cart" onClick=${() => setSelectedItem('cart')}>
-                        عرض السلة
+                    <button
+                        class="sell-cart-checkout"
+                        onClick=${(e) => { e.stopPropagation(); handleCompleteSale(); }}
+                        disabled=${isProcessing}
+                    >
+                        ${isProcessing ? 'جاري...' : 'إتمام البيع'}
                     </button>
                 </div>
             `}
 
-            <!-- Cart View Modal -->
-            ${selectedItem === 'cart' && html`
-                <div class="modal-overlay" onClick=${() => setSelectedItem(null)}>
-                    <div class="modal-container cart-modal" onClick=${(e) => e.stopPropagation()}>
-                        <div class="modal-header">
-                            <button class="btn-icon-only" onClick=${() => setSelectedItem(null)}>
+            <!-- Scanner Modal -->
+            ${showScanner && html`
+                <div class="modal-overlay" onClick=${closeScanner}>
+                    <div class="scanner-modal" onClick=${(e) => e.stopPropagation()}>
+                        <div class="scanner-modal-header">
+                            <button class="btn-icon-only" onClick=${closeScanner}>
                                 <${Icons.ArrowRight} />
                             </button>
-                            <h3>السلة (${totalItems})</h3>
+                            <h3>مسح الباركود</h3>
                             <div style="width: 40px;"></div>
                         </div>
 
-                        <div class="cart-items-list">
-                            ${cart.map(item => html`
-                                <div
-                                    class="cart-item-row"
-                                    key=${item.product.id}
-                                    onClick=${() => setSelectedItem(item)}
-                                >
-                                    <div class="cart-item-details">
-                                        <div class="cart-item-name">${item.product.name} × ${item.quantity}</div>
-                                        <div class="cart-item-price">${formatCurrency(item.product.salePrice * item.quantity)}</div>
-                                    </div>
-                                </div>
-                            `)}
-                        </div>
+                        <div class="scanner-container">
+                            <video id="scanner-video" class="scanner-video" autoplay playsinline muted></video>
 
-                        <div class="cart-footer">
-                            <div class="cart-total-row">
-                                <span>المجموع (Total)</span>
-                                <span class="cart-total-value">${formatCurrency(subtotal)}</span>
+                            ${!scannerActive && html`
+                                <div class="scanner-placeholder">
+                                    <div class="scanner-placeholder-icon">
+                                        <${Icons.Barcode} />
+                                    </div>
+                                    <p>جاري تفعيل الكاميرا...</p>
+                                    <button class="scanner-activate-btn" onClick=${startScanner}>
+                                        إعادة المحاولة
+                                    </button>
+                                </div>
+                            `}
+
+                            ${scannerActive && html`
+                                <div class="scan-line"></div>
+                            `}
+
+                            <div class="scanner-frame">
+                                <div class="scanner-corner top-left"></div>
+                                <div class="scanner-corner top-right"></div>
+                                <div class="scanner-corner bottom-left"></div>
+                                <div class="scanner-corner bottom-right"></div>
                             </div>
-                            <button
-                                class="btn-charge"
-                                onClick=${handleCompleteSale}
-                                disabled=${isProcessing}
-                            >
-                                ${isProcessing ? 'جاري المعالجة...' : `ادفع ${formatCurrency(subtotal)}`}
-                            </button>
-                            <button class="btn-cancel-sale" onClick=${handleCancelSale}>
-                                إلغاء العملية (Cancel Sale)
-                            </button>
+
+                            ${lastScanned && html`
+                                <div class="scan-notification">
+                                    ✓ تمت الإضافة
+                                </div>
+                            `}
                         </div>
                     </div>
                 </div>
             `}
 
             <!-- Item Editor Modal -->
-            ${selectedItem && selectedItem !== 'cart' && html`
+            ${selectedItem && html`
                 <div class="modal-overlay" onClick=${() => setSelectedItem(null)}>
-                    <div class="modal-container item-editor-modal" onClick=${(e) => e.stopPropagation()}>
-                        <div class="modal-header">
-                            <button class="btn-icon-only" onClick=${() => setSelectedItem(null)}>×</button>
-                            <h3>${selectedItem.product.name}</h3>
-                            <button class="btn-text-save" onClick=${() => setSelectedItem(null)}>حفظ</button>
+                    <div class="item-editor-modal" onClick=${(e) => e.stopPropagation()}>
+                        <div class="item-editor-header">
+                            <span class="item-editor-name">${selectedItem.product.name}</span>
+                            <span class="item-editor-price">${formatCurrency(selectedItem.product.salePrice)}</span>
                         </div>
 
-                        <div class="item-editor-body">
-                            <div class="editor-section">
-                                <label class="editor-label">الكمية (Quantity)</label>
-                                <div class="quantity-controls">
-                                    <button
-                                        class="qty-btn"
-                                        onClick=${() => updateQuantity(selectedItem.quantity - 1)}
-                                    >−</button>
-                                    <input
-                                        type="number"
-                                        class="qty-input"
-                                        value=${selectedItem.quantity}
-                                        onInput=${(e) => updateQuantity(parseInt(e.target.value) || 1)}
-                                    />
-                                    <button
-                                        class="qty-btn"
-                                        onClick=${() => updateQuantity(selectedItem.quantity + 1)}
-                                    >+</button>
-                                </div>
-                            </div>
+                        <div class="item-editor-qty">
+                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.quantity - 1)}>−</button>
+                            <span class="qty-value">${selectedItem.quantity}</span>
+                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.quantity + 1)}>+</button>
+                        </div>
 
+                        <div class="item-editor-subtotal">
+                            ${formatCurrency(selectedItem.product.salePrice * selectedItem.quantity)}
+                        </div>
+
+                        <div class="item-editor-actions">
                             <button class="btn-remove" onClick=${removeFromCart}>
-                                حذف من السلة (REMOVE FROM TICKET)
+                                حذف
+                            </button>
+                            <button class="btn-done" onClick=${() => setSelectedItem(null)}>
+                                تم
                             </button>
                         </div>
                     </div>
