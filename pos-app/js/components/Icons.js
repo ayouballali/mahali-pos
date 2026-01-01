@@ -215,4 +215,37 @@ export const Icons = {
             <line x1="14" y1="11" x2="14" y2="17"/>
         </svg>
     `,
+
+    // Close (X)
+    Close: () => html`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+    `,
+
+    // Flash/Bolt (lightning bolt) - filled for visibility
+    Flash: () => html`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+    `,
+
+    // Flash Off
+    FlashOff: () => html`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            <line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/>
+        </svg>
+    `,
+
+    // Camera Switch - rotate arrows
+    CameraSwitch: () => html`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 3h5v5"/>
+            <path d="M8 21H3v-5"/>
+            <path d="M21 3l-7 7"/>
+            <path d="M3 21l7-7"/>
+        </svg>
+    `,
 };

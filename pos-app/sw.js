@@ -1,9 +1,10 @@
 /**
  * Service Worker for Mahali POS PWA
- * Enables offline functionality and app installation
+ * Uses Network-First strategy for app files to ensure users always get latest version
+ * Falls back to cache when offline
  */
 
-const CACHE_NAME = 'mahali-pos-v4';
+const CACHE_NAME = 'mahali-pos-v10';
 const urlsToCache = [
     './',
     './index.html',
@@ -28,22 +29,38 @@ const urlsToCache = [
     './icons/icon-512.png'
 ];
 
+// Files that should use network-first strategy (always get latest)
+const networkFirstPatterns = [
+    /\.html$/,
+    /\.css$/,
+    /\.js$/,
+    /\.json$/
+];
+
+// Check if URL should use network-first strategy
+const shouldNetworkFirst = (url) => {
+    return networkFirstPatterns.some(pattern => pattern.test(url));
+};
+
 // Install event - cache all essential files
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing...');
+    console.log('Service Worker: Installing v10...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching files');
                 return cache.addAll(urlsToCache);
             })
-            .then(() => self.skipWaiting())
+            .then(() => {
+                console.log('Service Worker: Skip waiting, activating immediately');
+                return self.skipWaiting();
+            })
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches and take control immediately
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker: Activating...');
+    console.log('Service Worker: Activating v10...');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
@@ -54,21 +71,79 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
-        }).then(() => self.clients.claim())
+        }).then(() => {
+            console.log('Service Worker: Claiming all clients');
+            return self.clients.claim();
+        }).then(() => {
+            // Notify all clients to reload for the new version
+            return self.clients.matchAll().then(clients => {
+                clients.forEach(client => {
+                    client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+                });
+            });
+        })
     );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network First for app files, Cache First for static assets
 self.addEventListener('fetch', (event) => {
+    const url = event.request.url;
+
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    // Network-First strategy for HTML, CSS, JS, JSON files
+    if (shouldNetworkFirst(url)) {
+        event.respondWith(
+            fetch(event.request)
+                .then((networkResponse) => {
+                    // Got network response, update cache and return it
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseClone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return networkResponse;
+                })
+                .catch(() => {
+                    // Network failed, try cache
+                    console.log('Service Worker: Network failed, serving from cache:', url);
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Cache-First strategy for static assets (images, icons, etc.)
     event.respondWith(
         caches.match(event.request)
-            .then((response) => {
-                // Return cached version or fetch from network
-                return response || fetch(event.request);
+            .then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                // Not in cache, fetch from network
+                return fetch(event.request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseClone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return networkResponse;
+                });
             })
             .catch(() => {
-                // If both cache and network fail, could return offline page
-                console.log('Service Worker: Fetch failed for:', event.request.url);
+                console.log('Service Worker: Fetch failed for:', url);
             })
     );
+});
+
+// Listen for skip waiting message from client
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
