@@ -4,7 +4,7 @@
  * Falls back to cache when offline
  */
 
-const CACHE_NAME = 'mahali-pos-v10';
+const CACHE_NAME = 'mahali-pos-v12';
 const urlsToCache = [
     './',
     './index.html',
@@ -12,6 +12,7 @@ const urlsToCache = [
     './js/app.js',
     './js/lib/preact.js',
     './js/lib/db.js',
+    './js/lib/scanner.js',
     './js/utils/helpers.js',
     './js/data/mockData.js',
     './js/hooks/useProducts.js',
@@ -44,7 +45,7 @@ const shouldNetworkFirst = (url) => {
 
 // Install event - cache all essential files
 self.addEventListener('install', (event) => {
-    console.log('Service Worker: Installing v10...');
+    console.log('Service Worker: Installing v12...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {

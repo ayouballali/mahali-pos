@@ -8,6 +8,7 @@
 import { html, useState, useEffect } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { AddProductTab } from './AddProductTab.js';
+import { EditProductTab } from './EditProductTab.js';
 import { ConfirmDialog } from './ConfirmDialog.js';
 import { productDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
@@ -26,26 +27,35 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
     const { products, loading, reloadProducts } = useProducts();
     const { searchQuery, filteredProducts, handleSearch } = useProductSearch(products);
     const [showAddProduct, setShowAddProduct] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null); // Product being edited
     const [showSearch, setShowSearch] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
 
-    // Close add product form when tab becomes inactive
+    // Close add/edit product form when tab becomes inactive
     useEffect(() => {
-        if (!isActive && showAddProduct) {
+        if (!isActive && (showAddProduct || editingProduct)) {
             // User navigated away - close the form
             setShowAddProduct(false);
+            setEditingProduct(null);
             setHasUnsavedChanges(false);
             setShowConfirmDialog(false);
         }
-    }, [isActive, showAddProduct]);
+    }, [isActive, showAddProduct, editingProduct]);
 
-    // Handle Android back button for add product form
+    // Reload products when tab becomes active (picks up products added from other tabs)
     useEffect(() => {
-        if (showAddProduct) {
-            // Add a history entry when opening add product form
-            window.history.pushState({ addProductOpen: true }, '');
+        if (isActive && !showAddProduct && !editingProduct) {
+            reloadProducts();
+        }
+    }, [isActive]);
+
+    // Handle Android back button for add/edit product form
+    useEffect(() => {
+        if (showAddProduct || editingProduct) {
+            // Add a history entry when opening add/edit product form
+            window.history.pushState({ productFormOpen: true }, '');
 
             // Handle back button
             const handlePopState = () => {
@@ -54,10 +64,11 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                     setShowConfirmDialog(true);
                     setPendingNavigation('back-button');
                     // Push state back so we stay on the page until user confirms
-                    window.history.pushState({ addProductOpen: true }, '');
+                    window.history.pushState({ productFormOpen: true }, '');
                 } else {
                     // No unsaved changes - just close the form
                     setShowAddProduct(false);
+                    setEditingProduct(null);
                 }
             };
 
@@ -68,11 +79,11 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                 window.removeEventListener('popstate', handlePopState);
             };
         }
-    }, [showAddProduct, hasUnsavedChanges]);
+    }, [showAddProduct, editingProduct, hasUnsavedChanges]);
 
     // Register/unregister navigation guard
     useEffect(() => {
-        if (showAddProduct && hasUnsavedChanges && setCanNavigateAway) {
+        if ((showAddProduct || editingProduct) && hasUnsavedChanges && setCanNavigateAway) {
             // Register guard that shows custom dialog
             setCanNavigateAway(() => () => {
                 setShowConfirmDialog(true);
@@ -90,7 +101,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                 setCanNavigateAway(null);
             }
         };
-    }, [showAddProduct, hasUnsavedChanges, setCanNavigateAway]);
+    }, [showAddProduct, editingProduct, hasUnsavedChanges, setCanNavigateAway]);
 
 
     /**
@@ -102,7 +113,15 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
     };
 
     /**
-     * Handle back from add product
+     * Handle edit product click
+     */
+    const handleEditClick = (product) => {
+        vibrate();
+        setEditingProduct(product);
+    };
+
+    /**
+     * Handle back from add/edit product
      */
     const handleBack = (unsavedChanges = false) => {
         if (unsavedChanges) {
@@ -111,6 +130,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         } else {
             vibrate();
             setShowAddProduct(false);
+            setEditingProduct(null);
             setHasUnsavedChanges(false);
         }
     };
@@ -122,6 +142,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
         vibrate();
         setShowConfirmDialog(false);
         setShowAddProduct(false);
+        setEditingProduct(null);
         setHasUnsavedChanges(false);
 
         // If this was from tab navigation, complete the navigation
@@ -142,7 +163,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
     };
 
     /**
-     * Handle save product
+     * Handle save new product
      */
     const handleSaveProduct = async (product) => {
         try {
@@ -158,7 +179,39 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
     };
 
     /**
-     * Track unsaved changes from AddProductTab
+     * Handle update existing product
+     */
+    const handleUpdateProduct = async (product) => {
+        try {
+            await productDB.update(product.id, product);
+            await reloadProducts();
+            setEditingProduct(null);
+            setHasUnsavedChanges(false);
+            vibrate();
+        } catch (error) {
+            console.error('Error updating product:', error);
+            alert('حدث خطأ أثناء تحديث المنتج');
+        }
+    };
+
+    /**
+     * Handle delete product
+     */
+    const handleDeleteProduct = async (productId) => {
+        try {
+            await productDB.delete(productId);
+            await reloadProducts();
+            setEditingProduct(null);
+            setHasUnsavedChanges(false);
+            vibrate();
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('حدث خطأ أثناء حذف المنتج');
+        }
+    };
+
+    /**
+     * Track unsaved changes from AddProductTab/EditProductTab
      */
     const handleUnsavedChangesUpdate = (hasChanges) => {
         setHasUnsavedChanges(hasChanges);
@@ -170,6 +223,28 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
             <${AddProductTab}
                 onBack=${handleBack}
                 onSave=${handleSaveProduct}
+                onUnsavedChangesUpdate=${handleUnsavedChangesUpdate}
+            />
+            ${showConfirmDialog && html`
+                <${ConfirmDialog}
+                    message="لديك تغييرات غير محفوظة. هل تريد المتابعة والتجاهل؟"
+                    confirmText="تجاهل"
+                    cancelText="العودة"
+                    onConfirm=${handleConfirmDiscard}
+                    onCancel=${handleCancelDiscard}
+                />
+            `}
+        `;
+    }
+
+    // Show Edit Product screen
+    if (editingProduct) {
+        return html`
+            <${EditProductTab}
+                product=${editingProduct}
+                onBack=${handleBack}
+                onSave=${handleUpdateProduct}
+                onDelete=${handleDeleteProduct}
                 onUnsavedChangesUpdate=${handleUnsavedChangesUpdate}
             />
             ${showConfirmDialog && html`
@@ -232,7 +307,7 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                 <!-- Products List -->
                 <div class="products-list">
                     ${filteredProducts.map(product => html`
-                        <div class="product-card" key=${product.id}>
+                        <div class="product-card" key=${product.id} onClick=${() => handleEditClick(product)}>
                             <div class="product-image">
                                 ${product.image ? html`
                                     <img src=${product.image} alt=${product.name} />
@@ -262,15 +337,17 @@ export function ProductsTab({ isActive, setCanNavigateAway, confirmNavigation })
                 />
             `}
 
-            <!-- FAB -->
-            <button
-                class="fab"
-                onClick=${handleAddClick}
-                title="إضافة منتج"
-            >
-                <span>إضافة</span>
-                <${Icons.Plus} />
-            </button>
+            <!-- FAB - only show when products exist (empty state has its own add button) -->
+            ${products.length > 0 && html`
+                <button
+                    class="fab"
+                    onClick=${handleAddClick}
+                    title="إضافة منتج"
+                >
+                    <span>إضافة</span>
+                    <${Icons.Plus} />
+                </button>
+            `}
         </div>
     `;
 }

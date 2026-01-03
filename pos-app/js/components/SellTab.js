@@ -11,6 +11,7 @@ import { productDB, transactionDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
 import { useProducts } from '../hooks/useProducts.js';
 import { useProductSearch } from '../hooks/useProductSearch.js';
+import { createDetectionLoop, isScannerSupported } from '../lib/scanner.js';
 
 export function SellTab({ isActive }) {
     const { products, loading, reloadProducts } = useProducts();
@@ -26,6 +27,7 @@ export function SellTab({ isActive }) {
     const [facingMode, setFacingMode] = useState('environment');
     const lastScannedRef = useRef(null);
     const streamRef = useRef(null);
+    const detectionLoopRef = useRef(null);
 
     // Scanner sub-modals
     const [showScannerCart, setShowScannerCart] = useState(false);
@@ -35,6 +37,14 @@ export function SellTab({ isActive }) {
 
     // Toast notification
     const [toast, setToast] = useState(null);
+
+    // Scanner visual feedback
+    const [scanFlash, setScanFlash] = useState(null); // 'success' | 'notfound' | null
+    const [showHint, setShowHint] = useState(false);
+    const hintTimerRef = useRef(null);
+
+    // Tap-to-focus
+    const [focusPoint, setFocusPoint] = useState(null); // { x, y } position for focus indicator
 
     // Item editor (for both sell tab and scanner cart)
     const [selectedItem, setSelectedItem] = useState(null);
@@ -49,6 +59,13 @@ export function SellTab({ isActive }) {
             stopScanner();
         }
     }, [showScanner, isActive]);
+
+    // Reload products when tab becomes active (picks up changes from other tabs)
+    useEffect(() => {
+        if (isActive) {
+            reloadProducts();
+        }
+    }, [isActive]);
 
     // Handle back button to close modals instead of exiting app
     useEffect(() => {
@@ -98,13 +115,33 @@ export function SellTab({ isActive }) {
     }, [showScanner, showScannerCart, notFoundBarcode, showQuickAdd, selectedItem]);
 
     // Show toast notification
-    const showToast = (message, type = 'success') => {
+    const showToast = (message, type = 'success', duration = 2000) => {
         setToast({ message, type });
-        setTimeout(() => setToast(null), 2000);
+        setTimeout(() => setToast(null), duration);
+    };
+
+    // Reset hint timer - shows hint after 5 seconds of no scan
+    const resetHintTimer = () => {
+        setShowHint(false);
+        if (hintTimerRef.current) {
+            clearTimeout(hintTimerRef.current);
+        }
+        hintTimerRef.current = setTimeout(() => {
+            setShowHint(true);
+        }, 5000);
+    };
+
+    // Clear hint timer on unmount or scanner close
+    const clearHintTimer = () => {
+        if (hintTimerRef.current) {
+            clearTimeout(hintTimerRef.current);
+            hintTimerRef.current = null;
+        }
+        setShowHint(false);
     };
 
     // Play scanner beep sound
-    const playBeep = () => {
+    const playBeep = (type = 'success') => {
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
@@ -113,12 +150,34 @@ export function SellTab({ isActive }) {
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            oscillator.frequency.value = 1800;
-            oscillator.type = 'square';
-            gainNode.gain.value = 0.3;
-
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.1);
+            if (type === 'success') {
+                // Success: Short high-pitched beep (1800Hz)
+                oscillator.frequency.value = 1800;
+                oscillator.type = 'square';
+                gainNode.gain.value = 0.3;
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } else if (type === 'notfound') {
+                // Not found: Lower pitch double beep (800Hz)
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.25;
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.08);
+                
+                // Second beep
+                setTimeout(() => {
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    osc2.frequency.value = 800;
+                    osc2.type = 'sine';
+                    gain2.gain.value = 0.25;
+                    osc2.start();
+                    osc2.stop(audioContext.currentTime + 0.08);
+                }, 100);
+            }
         } catch (e) {
             // Audio not supported
         }
@@ -133,6 +192,7 @@ export function SellTab({ isActive }) {
 
     const closeScanner = () => {
         stopScanner();
+        clearHintTimer();
         setShowScanner(false);
         setShowScannerCart(false);
         setNotFoundBarcode(null);
@@ -160,16 +220,39 @@ export function SellTab({ isActive }) {
             }
 
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: facing }
+                video: {
+                    facingMode: facing,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    // Request continuous autofocus for better barcode scanning
+                    focusMode: { ideal: 'continuous' }
+                }
             });
+
+            // Apply 1.5x zoom if supported (helps with barcode scanning)
+            try {
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+                if (capabilities.zoom) {
+                    const minZoom = capabilities.zoom.min;
+                    const maxZoom = capabilities.zoom.max;
+                    const targetZoom = Math.min(1.5, maxZoom);
+                    if (targetZoom > minZoom) {
+                        await track.applyConstraints({ advanced: [{ zoom: targetZoom }] });
+                    }
+                }
+            } catch (e) {
+                // Zoom not supported, continue without it
+            }
             streamRef.current = stream;
             video.srcObject = stream;
             await video.play();
             setScannerActive(true);
             setFlashOn(false); // Reset flash when camera changes
 
-            if ('BarcodeDetector' in window) {
-                detectBarcodes(video);
+            // Start barcode detection using abstracted scanner service
+            if (isScannerSupported()) {
+                startDetectionLoop(video);
             }
         } catch (err) {
             setScannerActive(false);
@@ -182,6 +265,12 @@ export function SellTab({ isActive }) {
     };
 
     const stopScanner = () => {
+        // Stop detection loop
+        if (detectionLoopRef.current) {
+            detectionLoopRef.current.stop();
+            detectionLoopRef.current = null;
+        }
+        // Stop video stream
         const video = document.getElementById('scanner-video');
         if (video && video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
@@ -227,70 +316,110 @@ export function SellTab({ isActive }) {
         startScanner(newFacing);
     };
 
-    // Barcode detection with confidence checking
-    const detectBarcodes = async (video) => {
-        const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'qr_code'] });
-        let consecutiveReads = {};
-        const REQUIRED_READS = 2; // Reduced from 3 for faster scanning
+    // Tap-to-focus - triggers camera autofocus on tapped point
+    const handleTapToFocus = async (e) => {
+        if (!streamRef.current) return;
 
-        const isValidBarcode = (code) => {
-            if (!code || code.length < 4) return false;
-            if (/^\d{13}$/.test(code)) return true;
-            if (/^\d{8}$/.test(code)) return true;
-            if (/^\d{12}$/.test(code)) return true;
-            if (/^[A-Za-z0-9\-\.]+$/.test(code) && code.length >= 6) return true;
-            return false;
-        };
+        const video = document.getElementById('scanner-video');
+        if (!video) return;
 
-        const detect = async () => {
-            if (!video.srcObject) return;
+        // Get tap position relative to video element
+        const rect = video.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
 
-            try {
-                const barcodes = await detector.detect(video);
-                if (barcodes.length > 0) {
-                    const code = barcodes[0].rawValue;
+        // Show focus indicator at tap position
+        setFocusPoint({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        vibrate(30);
 
-                    if (isValidBarcode(code)) {
-                        consecutiveReads[code] = (consecutiveReads[code] || 0) + 1;
-                        Object.keys(consecutiveReads).forEach(k => {
-                            if (k !== code) consecutiveReads[k] = 0;
-                        });
+        // Hide focus indicator after animation
+        setTimeout(() => setFocusPoint(null), 1000);
 
-                        if (consecutiveReads[code] >= REQUIRED_READS) {
-                            consecutiveReads[code] = 0;
+        // Try to focus camera at tapped point
+        try {
+            const track = streamRef.current.getVideoTracks()[0];
+            if (!track) return;
 
-                            // Skip if this barcode was just scanned (prevents multiple beeps)
-                            if (lastScannedRef.current === code) {
-                                // Don't return - just skip processing but keep detection running
-                            } else {
-                                // Freeze video and play beep
-                                setScannerFrozen(true);
-                                playBeep();
-                                video.pause();
+            const capabilities = track.getCapabilities();
 
-                                // Process barcode after short delay
-                                setTimeout(() => {
-                                    handleBarcodeScanned(code);
-                                    // Unfreeze after 300ms
-                                    setTimeout(() => {
-                                        setScannerFrozen(false);
-                                        if (video.srcObject) {
-                                            video.play();
-                                        }
-                                    }, 300);
-                                }, 100);
-                            }
-                        }
-                    }
+            // Check if point-of-interest focus is supported
+            if (capabilities.focusMode && capabilities.focusMode.includes('manual')) {
+                // Some devices support pointsOfInterest for tap-to-focus
+                const constraints = {
+                    advanced: [{
+                        focusMode: 'manual'
+                    }]
+                };
+
+                // If pointsOfInterest is supported, use it
+                if ('pointsOfInterest' in capabilities) {
+                    constraints.advanced[0].pointsOfInterest = [{ x, y }];
                 }
-            } catch (e) {}
 
-            if (video.srcObject) {
-                requestAnimationFrame(detect);
+                await track.applyConstraints(constraints);
+
+                // After focusing, switch back to continuous focus after a delay
+                setTimeout(async () => {
+                    try {
+                        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+                            await track.applyConstraints({
+                                advanced: [{ focusMode: 'continuous' }]
+                            });
+                        }
+                    } catch (e) {
+                        // Ignore - continuous may not be supported
+                    }
+                }, 2000);
+            } else if (capabilities.focusMode && capabilities.focusMode.includes('single-shot')) {
+                // Trigger single-shot autofocus (re-focus)
+                await track.applyConstraints({
+                    advanced: [{ focusMode: 'single-shot' }]
+                });
             }
-        };
+        } catch (err) {
+            // Focus not supported on this device - visual feedback still shows
+            console.log('Tap-to-focus not supported:', err.message);
+        }
+    };
 
-        detect();
+    // Start barcode detection loop using abstracted scanner service
+    const startDetectionLoop = (video) => {
+        // Stop existing loop if any
+        if (detectionLoopRef.current) {
+            detectionLoopRef.current.stop();
+        }
+
+        // Start hint timer (shows after 5 seconds of no scan)
+        resetHintTimer();
+
+        // Create new detection loop
+        detectionLoopRef.current = createDetectionLoop({
+            video,
+            onDetect: (code) => {
+                // Skip if this barcode was just scanned (prevents multiple beeps)
+                if (lastScannedRef.current === code) return;
+
+                // Reset hint timer on successful detection
+                resetHintTimer();
+
+                // Freeze video and play beep
+                setScannerFrozen(true);
+                playBeep();
+                video.pause();
+
+                // Process barcode after short delay
+                setTimeout(() => {
+                    handleBarcodeScanned(code);
+                    // Unfreeze after 300ms
+                    setTimeout(() => {
+                        setScannerFrozen(false);
+                        if (video.srcObject) {
+                            video.play();
+                        }
+                    }, 300);
+                }, 100);
+            }
+        });
     };
 
     // Handle scanned barcode - fetch fresh from DB to get newly added products
@@ -298,20 +427,28 @@ export function SellTab({ isActive }) {
         // Use ref to prevent duplicate scans (ref is accessible in detection loop)
         if (lastScannedRef.current === barcode) return;
         lastScannedRef.current = barcode;
-        // Short delay (1.5 seconds) - prevents rapid duplicates but allows re-scanning
-        setTimeout(() => { lastScannedRef.current = null; }, 1500);
+        // 2 second cooldown - prevents rapid duplicates but allows re-scanning different barcodes
+        setTimeout(() => { lastScannedRef.current = null; }, 2000);
 
         // Fetch fresh from database to catch newly added products
         const freshProducts = await productDB.getAll();
         const product = freshProducts.find(p => p.barcode === barcode);
 
         if (product) {
-            vibrate();
+            // Success feedback
+            vibrate(100); // Short haptic
+            setScanFlash('success');
+            setTimeout(() => setScanFlash(null), 300);
             addToCart(product);
-            showToast(`${product.name} - ${formatCurrency(product.salePrice)}`);
+            showToast(`${product.name} - ${formatCurrency(product.salePrice)}`, 'success');
         } else {
-            vibrate([100, 50, 100]);
-            setNotFoundBarcode(barcode);
+            // Not found feedback
+            vibrate([100, 50, 100]); // Double vibration pattern
+            playBeep('notfound'); // Different sound tone
+            setScanFlash('notfound');
+            setTimeout(() => setScanFlash(null), 300);
+            showToast('منتج غير موجود', 'notfound');
+            setTimeout(() => setNotFoundBarcode(barcode), 500);
         }
     };
 
@@ -400,15 +537,25 @@ export function SellTab({ isActive }) {
         vibrate();
 
         try {
+            // Calculate profit for this transaction
+            const totalProfit = cart.reduce((sum, item) => {
+                const costPrice = item.product.costPrice || item.product.salePrice;
+                const profit = (item.product.salePrice - costPrice) * item.quantity;
+                return sum + profit;
+            }, 0);
+
             const transaction = {
                 items: cart.map(item => ({
                     productId: item.product.id,
                     productName: item.product.name,
                     quantity: item.quantity,
                     price: item.product.salePrice,
+                    costPrice: item.product.costPrice || item.product.salePrice,
                     subtotal: item.product.salePrice * item.quantity
                 })),
                 total: subtotal,
+                profit: totalProfit,
+                itemCount: totalItems,
                 status: 'completed',
                 date: new Date().toISOString()
             };
@@ -421,15 +568,20 @@ export function SellTab({ isActive }) {
                 await productDB.update(product.id, { stock: newStock });
             }
 
-            alert(`✓ تم البيع\n${formatCurrency(subtotal)}`);
-            setCart([]);
+            // Close scanner and cart modals
             setShowScannerCart(false);
             closeScanner();
+
+            // Show success toast (stays visible for 4 seconds after scanner closes)
+            showToast(`✓ تم البيع - ${formatCurrency(subtotal)}`, 'success', 4000);
+
+            // Clear cart and reload products
+            setCart([]);
             reloadProducts();
 
         } catch (error) {
             console.error('Error completing sale:', error);
-            alert('حدث خطأ أثناء إتمام العملية');
+            showToast('حدث خطأ أثناء إتمام العملية', 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -458,7 +610,7 @@ export function SellTab({ isActive }) {
             </div>
 
             <!-- Products List -->
-            <div class="sell-products-list">
+            <div class="products-list">
                 ${filteredProducts.length === 0 ? html`
                     <div class="empty-state">
                         <div class="empty-icon"><${Icons.Package} /></div>
@@ -468,18 +620,21 @@ export function SellTab({ isActive }) {
                     const qtyInCart = getCartQuantity(product.id);
                     return html`
                         <div
-                            class="sell-product-item ${qtyInCart > 0 ? 'in-cart' : ''}"
+                            class="product-card ${qtyInCart > 0 ? 'in-cart' : ''}"
                             key=${product.id}
                             onClick=${() => { vibrate(); addToCart(product); }}
                         >
-                            <div class="sell-product-image">
+                            <div class="product-image">
                                 ${product.image ? html`<img src=${product.image} alt=${product.name} />` : html`<${Icons.Package} />`}
                             </div>
-                            <div class="sell-product-info">
-                                <div class="sell-product-name">${product.name}</div>
-                                <div class="sell-product-price">${formatCurrency(product.salePrice)}</div>
+                            <div class="product-info">
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-stock">${product.stock || 0} في المخزون</div>
                             </div>
-                            ${qtyInCart > 0 && html`<div class="sell-product-badge">${qtyInCart}</div>`}
+                            <div class="product-price">
+                                ${formatCurrency(product.salePrice)}
+                            </div>
+                            ${qtyInCart > 0 && html`<div class="product-badge">${qtyInCart}</div>`}
                         </div>
                     `;
                 })}
@@ -533,7 +688,7 @@ export function SellTab({ isActive }) {
                     </div>
 
                     <!-- Camera View -->
-                    <div class="scanner-camera">
+                    <div class="scanner-camera" onClick=${handleTapToFocus}>
                         <video id="scanner-video" class="scanner-video" autoplay playsinline muted></video>
 
                         <!-- Dark overlay around scan area -->
@@ -556,12 +711,45 @@ export function SellTab({ isActive }) {
 
                         ${scannerFrozen && html`<div class="scanner-freeze-overlay"></div>`}
 
-                        <div class="scanner-frame">
+                        <div class="scanner-frame ${scanFlash ? `flash-${scanFlash}` : ''}">
                             <div class="scanner-corner top-left"></div>
                             <div class="scanner-corner top-right"></div>
                             <div class="scanner-corner bottom-left"></div>
                             <div class="scanner-corner bottom-right"></div>
                         </div>
+
+                        ${showHint && html`
+                            <div class="scanner-hint">
+                                قرّب الباركود من المنطقة المحددة
+                            </div>
+                        `}
+
+                        <!-- Tap-to-focus indicator -->
+                        ${focusPoint && html`
+                            <div
+                                class="focus-indicator"
+                                style="left: ${focusPoint.x}px; top: ${focusPoint.y}px;"
+                            ></div>
+                        `}
+                    </div>
+
+                    <!-- Bottom Action Buttons -->
+                    <div class="scanner-bottom-actions">
+                        <button
+                            class="scanner-bottom-btn cart-btn"
+                            onClick=${() => setShowScannerCart(true)}
+                        >
+                            <${Icons.ShoppingCart} />
+                            <span>السلة</span>
+                            ${totalItems > 0 && html`<span class="btn-badge">${totalItems}</span>`}
+                        </button>
+                        <button
+                            class="scanner-bottom-btn pay-btn"
+                            onClick=${handleCompleteSale}
+                            disabled=${cart.length === 0 || isProcessing}
+                        >
+                            <span class="pay-amount">${cart.length > 0 ? formatCurrency(subtotal) : 'ادفع'}</span>
+                        </button>
                     </div>
 
                     <!-- Toast Notification -->
@@ -673,6 +861,7 @@ export function SellTab({ isActive }) {
                     ${selectedItem && showScannerCart && html`
                         <div class="scanner-overlay" onClick=${() => setSelectedItem(null)}>
                             <div class="item-editor-modal" onClick=${(e) => e.stopPropagation()}>
+                                <button class="item-editor-close" onClick=${() => setSelectedItem(null)}>×</button>
                                 <div class="item-editor-header">
                                     <span class="item-editor-name">${selectedItem.product.name}</span>
                                     <span class="item-editor-price">${formatCurrency(selectedItem.product.salePrice)}</span>
@@ -699,6 +888,7 @@ export function SellTab({ isActive }) {
             ${selectedItem && !showScanner && html`
                 <div class="modal-overlay" onClick=${() => setSelectedItem(null)}>
                     <div class="item-editor-modal" onClick=${(e) => e.stopPropagation()}>
+                        <button class="item-editor-close" onClick=${() => setSelectedItem(null)}>×</button>
                         <div class="item-editor-header">
                             <span class="item-editor-name">${selectedItem.product.name}</span>
                             <span class="item-editor-price">${formatCurrency(selectedItem.product.salePrice)}</span>
@@ -754,6 +944,13 @@ export function SellTab({ isActive }) {
                             </button>
                         </div>
                     </div>
+                </div>
+            `}
+
+            <!-- Global Toast (outside scanner) -->
+            ${toast && !showScanner && html`
+                <div class="sell-toast ${toast.type}">
+                    <span class="toast-message">${toast.message}</span>
                 </div>
             `}
         </div>

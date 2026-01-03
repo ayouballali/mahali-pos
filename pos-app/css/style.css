@@ -64,7 +64,8 @@ body {
 #sell-tab.active,
 #products-tab.active,
 #reports-tab.active,
-#add-product-tab.active {
+#add-product-tab.active,
+#edit-product-tab.active {
     display: block !important;
 }
 
@@ -612,6 +613,20 @@ body {
     height: 24px;
 }
 
+/* Delete button in header */
+.tab-header .delete-btn {
+    color: #ef4444;
+}
+
+.tab-header .delete-btn:active {
+    background: #fef2f2;
+}
+
+.tab-header .delete-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
 /* Search Container */
 .search-container {
     padding: 0 20px 16px;
@@ -1132,6 +1147,12 @@ button {
     display: flex;
     gap: 16px;
     align-items: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.product-card:active {
+    background-color: #f1f5f9;
 }
 
 .product-image {
@@ -1175,6 +1196,36 @@ button {
     font-weight: 500;
     color: #1e293b;
     text-align: right;
+}
+
+/* Product card in-cart state (for Sell tab) */
+.product-card.in-cart {
+    background: #f0fdf4;
+    border-right: 3px solid #22c55e;
+}
+
+/* Product badge (quantity in cart) */
+.product-badge {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    background: #22c55e;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+
+/* Make product-card position relative for badge positioning */
+.products-list .product-card {
+    position: relative;
 }
 
 /* Add Product Inline Button */
@@ -1305,6 +1356,16 @@ button {
     transform: scale(0.98);
 }
 
+.dialog-btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.dialog-btn-danger:active {
+    background: #dc2626;
+    transform: scale(0.98);
+}
+
 /* ============================================
    Sell Tab - Loyverse Style
    ============================================ */
@@ -1349,84 +1410,9 @@ button {
     background: #16a34a;
 }
 
-/* Products List */
-.sell-products-list {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 100px !important;
-}
-
-.sell-product-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    background: white;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.sell-product-item:active {
-    background: #f8fafc;
-}
-
-.sell-product-item.in-cart {
-    background: #f0fdf4;
-}
-
-.sell-product-image {
-    flex-shrink: 0;
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-}
-
-.sell-product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.sell-product-image svg {
-    width: 24px;
-    height: 24px;
-}
-
-.sell-product-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.sell-product-name {
-    font-size: 16px;
-    font-weight: 500;
-    color: #1e293b;
-    margin-bottom: 4px;
-}
-
-.sell-product-price {
-    font-size: 14px;
-    color: #64748b;
-}
-
-.sell-product-badge {
-    width: 32px;
-    height: 32px;
-    background: #22c55e;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
+/* Sell Tab - Products List uses shared .products-list and .product-card styles */
+#sell-tab .products-list {
+    padding-bottom: 180px; /* Extra space for cart bar */
 }
 
 /* Cart Bar (Bottom) */
@@ -1704,6 +1690,40 @@ button {
     transform: scale(0.98);
 }
 
+/* Sell Tab Global Toast */
+.sell-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #22c55e;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 28px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    animation: toastFadeIn 0.3s ease-out;
+    z-index: 9999;
+    text-align: center;
+}
+
+.sell-toast.error {
+    background: #ef4444;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
 /* Item Editor Modal */
 .item-editor-body {
     padding: 24px 20px;
@@ -1921,6 +1941,7 @@ button {
 }
 
 /* Scanner Dark Overlay - shadows area outside scan box */
+/* Smaller, focused scan area for better autofocus on barcodes */
 .scanner-dark-overlay {
     position: absolute;
     top: 0;
@@ -1936,8 +1957,8 @@ button {
     top: 0;
     left: 0;
     right: 0;
-    height: 20%;
-    background: rgba(0, 0, 0, 0.7);
+    height: 35%;
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .scanner-dark-overlay-bottom {
@@ -1945,26 +1966,26 @@ button {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 20%;
-    background: rgba(0, 0, 0, 0.7);
+    height: 35%;
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .scanner-dark-overlay-left {
     position: absolute;
-    top: 20%;
-    bottom: 20%;
+    top: 35%;
+    bottom: 35%;
     left: 0;
-    width: 10%;
-    background: rgba(0, 0, 0, 0.7);
+    width: 8%;
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .scanner-dark-overlay-right {
     position: absolute;
-    top: 20%;
-    bottom: 20%;
+    top: 35%;
+    bottom: 35%;
     right: 0;
-    width: 10%;
-    background: rgba(0, 0, 0, 0.7);
+    width: 8%;
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .scanner-placeholder {
@@ -2019,20 +2040,20 @@ button {
 /* Scan Line Animation */
 .scan-line {
     position: absolute;
-    left: 10%;
-    right: 10%;
+    left: 8%;
+    right: 8%;
     height: 3px;
     background: linear-gradient(90deg, transparent, #ef4444, #ef4444, transparent);
     box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444;
-    animation: scanMove 2s ease-in-out infinite;
+    animation: scanMove 1.5s ease-in-out infinite;
 }
 
 @keyframes scanMove {
-    0%, 100% { top: 20%; }
-    50% { top: 80%; }
+    0%, 100% { top: 35%; }
+    50% { top: 65%; }
 }
 
-/* Scanner Freeze Effect */
+/* Scanner Freeze Effect - Success (Green) */
 .scanner-freeze-overlay {
     position: absolute;
     top: 0;
@@ -2041,22 +2062,32 @@ button {
     bottom: 0;
     background: rgba(34, 197, 94, 0.3);
     pointer-events: none;
-    animation: freezeFlash 0.3s ease-out;
+    animation: freezeFlashSuccess 0.3s ease-out;
     z-index: 5;
 }
 
-@keyframes freezeFlash {
-    0% { background: rgba(255, 255, 255, 0.6); }
-    100% { background: rgba(34, 197, 94, 0.3); }
+@keyframes freezeFlashSuccess {
+    0% { background: rgba(34, 197, 94, 0.8); }
+    100% { background: rgba(34, 197, 94, 0.2); }
+}
+
+/* Scanner Freeze Effect - Not Found (Orange) */
+.scanner-freeze-overlay.notfound {
+    animation: freezeFlashNotFound 0.3s ease-out;
+}
+
+@keyframes freezeFlashNotFound {
+    0% { background: rgba(249, 115, 22, 0.8); }
+    100% { background: rgba(249, 115, 22, 0.2); }
 }
 
 /* Scanner Frame */
 .scanner-frame {
     position: absolute;
-    top: 20%;
-    left: 10%;
-    right: 10%;
-    bottom: 20%;
+    top: 35%;
+    left: 8%;
+    right: 8%;
+    bottom: 35%;
     pointer-events: none;
 }
 
@@ -2097,6 +2128,220 @@ button {
     border-right-width: 3px;
 }
 
+/* Green Flash on Successful Scan */
+.scanner-frame.flash-success {
+    animation: greenFlash 0.3s ease-out;
+}
+
+.scanner-frame.flash-success .scanner-corner {
+    border-color: #22c55e;
+}
+
+@keyframes greenFlash {
+    0% { box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.8); }
+    50% { box-shadow: inset 0 0 0 8px rgba(34, 197, 94, 0.5); }
+    100% { box-shadow: inset 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Orange Flash on Not Found */
+.scanner-frame.flash-notfound {
+    animation: orangeFlash 0.3s ease-out;
+}
+
+.scanner-frame.flash-notfound .scanner-corner {
+    border-color: #f97316;
+}
+
+@keyframes orangeFlash {
+    0% { box-shadow: inset 0 0 0 4px rgba(249, 115, 22, 0.8); }
+    50% { box-shadow: inset 0 0 0 8px rgba(249, 115, 22, 0.5); }
+    100% { box-shadow: inset 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+/* Scanner Hint Message */
+.scanner-hint {
+    position: absolute;
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Tap-to-Focus Indicator */
+.focus-indicator {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    margin-left: -40px;
+    margin-top: -40px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+    animation: focusPulse 1s ease-out forwards;
+}
+
+.focus-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    margin-top: -5px;
+    background: #fff;
+    border-radius: 50%;
+}
+
+.focus-indicator::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: focusRing 0.5s ease-out;
+}
+
+@keyframes focusPulse {
+    0% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes focusRing {
+    0% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+}
+
+/* Scanner Bottom Action Buttons */
+.scanner-bottom-actions {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    padding-bottom: 24px !important;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 60%, transparent 100%) !important;
+    z-index: 10001 !important;
+    box-sizing: border-box !important;
+}
+
+.scanner-bottom-btn {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 16px 20px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    position: relative !important;
+    min-height: 56px !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+}
+
+.scanner-bottom-btn.cart-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.scanner-bottom-btn.cart-btn:active {
+    background: rgba(255, 255, 255, 0.35) !important;
+}
+
+.scanner-bottom-btn.cart-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+.scanner-bottom-btn.pay-btn {
+    background: #22c55e !important;
+    color: white !important;
+    flex: 1.5 !important;
+}
+
+.scanner-bottom-btn.pay-btn:active {
+    background: #16a34a !important;
+}
+
+.scanner-bottom-btn.pay-btn:disabled {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    cursor: not-allowed !important;
+}
+
+.scanner-bottom-btn .btn-badge {
+    position: absolute !important;
+    top: -8px !important;
+    right: -8px !important;
+    background: #ef4444 !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 6px !important;
+}
+
+.pay-amount {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+}
+
 /* Scanner Toast */
 .scanner-toast {
     position: absolute;
@@ -2116,6 +2361,7 @@ button {
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     max-width: 90%;
     text-align: center;
+    z-index: 15;
 }
 
 .toast-icon {
@@ -2125,6 +2371,26 @@ button {
 @keyframes toastSlideUp {
     from { opacity: 0; transform: translateX(-50%) translateY(20px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Scanner Instructions (for AddProductTab scanner) */
+.scanner-instructions {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 10;
+}
+
+.scanner-instructions p {
+    color: white;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 24px;
+    margin: 0;
 }
 
 /* Scanner Overlay (for modals over camera) */
@@ -2140,6 +2406,7 @@ button {
     justify-content: center;
     padding: 20px;
     z-index: 20;
+    overflow: visible;
 }
 
 /* Not Found Modal */
@@ -2415,9 +2682,13 @@ button {
     background: white;
     border-radius: 16px;
     padding: 24px;
+    padding-top: 32px;
     max-width: 320px;
     width: 100%;
     text-align: center;
+    position: relative;
+    overflow: visible;
+    margin-top: 20px;
 }
 
 .item-editor-header {
@@ -2435,6 +2706,33 @@ button {
 .item-editor-price {
     font-size: 14px;
     color: #64748b;
+}
+
+.item-editor-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 36px;
+    height: 36px;
+    background: #ef4444;
+    border: 3px solid white;
+    border-radius: 50%;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    line-height: 1;
+}
+
+.item-editor-close:active {
+    background: #dc2626;
+    transform: scale(0.9);
 }
 
 .item-editor-qty {

@@ -13,6 +13,7 @@ import { html } from '../lib/preact.js';
  * @param {string} props.message - The confirmation message
  * @param {string} props.confirmText - Text for confirm button (default: "متابعة")
  * @param {string} props.cancelText - Text for cancel button (default: "إلغاء")
+ * @param {boolean} props.danger - If true, confirm button is styled as danger (red)
  * @param {Function} props.onConfirm - Called when user confirms
  * @param {Function} props.onCancel - Called when user cancels
  * @returns {import('preact').VNode}
@@ -21,6 +22,7 @@ export function ConfirmDialog({
     message,
     confirmText = 'متابعة',
     cancelText = 'إلغاء',
+    danger = false,
     onConfirm,
     onCancel
 }) {
@@ -34,7 +36,7 @@ export function ConfirmDialog({
                     <button class="dialog-btn dialog-btn-cancel" onClick=${onCancel}>
                         ${cancelText}
                     </button>
-                    <button class="dialog-btn dialog-btn-confirm" onClick=${onConfirm}>
+                    <button class="dialog-btn ${danger ? 'dialog-btn-danger' : 'dialog-btn-confirm'}" onClick=${onConfirm}>
                         ${confirmText}
                     </button>
                 </div>

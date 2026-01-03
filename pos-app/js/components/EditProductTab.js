@@ -1,6 +1,6 @@
 /**
- * Add Product Tab Component
- * Clean mobile-first form for adding new products
+ * Edit Product Tab Component
+ * Form for editing existing products
  *
  * @version 1.0.0
  */
@@ -9,26 +9,32 @@ import { html, useState, useEffect, useRef } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { formatCurrency, calculateProfitMargin, vibrate } from '../utils/helpers.js';
 import { createDetectionLoop, isScannerSupported } from '../lib/scanner.js';
+import { ConfirmDialog } from './ConfirmDialog.js';
 
 /**
- * Add Product Tab Component
+ * Edit Product Tab Component
  * @param {Object} props
+ * @param {Object} props.product - The product to edit
  * @param {Function} props.onBack - Callback to return to products list
  * @param {Function} props.onSave - Callback when product is saved
+ * @param {Function} props.onDelete - Callback when product is deleted
  * @param {Function} props.onUnsavedChangesUpdate - Callback to notify parent of unsaved changes
  * @returns {import('preact').VNode}
  */
-export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
+export function EditProductTab({ product, onBack, onSave, onDelete, onUnsavedChangesUpdate }) {
 
-    // Form state
-    const [barcode, setBarcode] = useState('');
-    const [productName, setProductName] = useState('');
-    const [saleType, setSaleType] = useState('الوحدة'); // 'الوحدة' or 'الوزن'
-    const [costPrice, setCostPrice] = useState('');
-    const [salePrice, setSalePrice] = useState('');
-    const [stock, setStock] = useState('');
-    const [productImage, setProductImage] = useState(null); // Base64 image data
+    // Form state - initialize with product data
+    const [barcode, setBarcode] = useState(product.barcode || '');
+    const [productName, setProductName] = useState(product.name || '');
+    const [saleType, setSaleType] = useState(product.saleType || 'الوحدة');
+    const [costPrice, setCostPrice] = useState(product.costPrice?.toString() || '');
+    const [salePrice, setSalePrice] = useState(product.salePrice?.toString() || '');
+    const [productImage, setProductImage] = useState(product.image || null);
+    const [stock, setStock] = useState(product.stock?.toString() || '0');
     const [errors, setErrors] = useState({});
+
+    // Delete confirmation
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Scanner state
     const [showScanner, setShowScanner] = useState(false);
@@ -38,19 +44,43 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
     const streamRef = useRef(null);
     const detectionLoopRef = useRef(null);
 
+    // Track original values to detect changes
+    const originalValues = useRef({
+        barcode: product.barcode || '',
+        name: product.name || '',
+        saleType: product.saleType || 'الوحدة',
+        costPrice: product.costPrice?.toString() || '',
+        salePrice: product.salePrice?.toString() || '',
+        image: product.image || null,
+        stock: product.stock?.toString() || '0'
+    });
+
     // Calculate profit
     const cost = parseFloat(costPrice) || 0;
     const sale = parseFloat(salePrice) || 0;
     const profit = sale - cost;
     const profitMargin = calculateProfitMargin(cost, sale);
 
-    // Notify parent about unsaved changes whenever form data changes
+    // Check for unsaved changes
+    const hasChanges = () => {
+        const orig = originalValues.current;
+        return (
+            barcode !== orig.barcode ||
+            productName !== orig.name ||
+            saleType !== orig.saleType ||
+            costPrice !== orig.costPrice ||
+            salePrice !== orig.salePrice ||
+            productImage !== orig.image ||
+            stock !== orig.stock
+        );
+    };
+
+    // Notify parent about unsaved changes
     useEffect(() => {
-        const hasChanges = !!(barcode || productName || costPrice || salePrice || stock || productImage);
         if (onUnsavedChangesUpdate) {
-            onUnsavedChangesUpdate(hasChanges);
+            onUnsavedChangesUpdate(hasChanges());
         }
-    }, [barcode, productName, costPrice, salePrice, stock, productImage, onUnsavedChangesUpdate]);
+    }, [barcode, productName, saleType, costPrice, salePrice, productImage, stock]);
 
     /**
      * Validate form
@@ -87,8 +117,8 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             return;
         }
 
-        const product = {
-            id: `prod_${Date.now()}`,
+        const updatedProduct = {
+            ...product,
             barcode: barcode.trim() || null,
             name: productName.trim(),
             saleType,
@@ -96,11 +126,30 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             salePrice: sale,
             image: productImage,
             stock: parseInt(stock) || 0,
-            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
 
         vibrate();
-        onSave(product);
+        onSave(updatedProduct);
+    };
+
+    /**
+     * Handle delete
+     */
+    const handleDelete = () => {
+        vibrate();
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = () => {
+        vibrate();
+        setShowDeleteConfirm(false);
+        onDelete(product.id);
+    };
+
+    const cancelDelete = () => {
+        vibrate();
+        setShowDeleteConfirm(false);
     };
 
     /**
@@ -110,22 +159,18 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             alert('الرجاء اختيار صورة');
             return;
         }
 
-        // Read and compress image
         const reader = new FileReader();
         reader.onload = (event) => {
             const img = new Image();
             img.onload = () => {
-                // Create canvas for compression
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Calculate new dimensions (max 1200px on longest side)
                 let width = img.width;
                 let height = img.height;
                 const maxSize = 1200;
@@ -141,7 +186,6 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
                 canvas.width = width;
                 canvas.height = height;
 
-                // Draw and compress (0.8 quality for good balance)
                 ctx.drawImage(img, 0, 0, width, height);
                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
@@ -183,7 +227,7 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
      */
     const startScanner = async (facing = facingMode) => {
         try {
-            const video = document.getElementById('barcode-scanner-video');
+            const video = document.getElementById('edit-barcode-scanner-video');
             if (!video) return;
 
             if (!window.isSecureContext) {
@@ -196,7 +240,6 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
                 return;
             }
 
-            // Stop existing stream first
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
@@ -209,7 +252,6 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
                 }
             });
 
-            // Apply 1.5x zoom if supported
             try {
                 const track = stream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
@@ -231,7 +273,6 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             setScannerActive(true);
             setFlashOn(false);
 
-            // Start barcode detection
             if (isScannerSupported()) {
                 startDetectionLoop(video);
             }
@@ -253,7 +294,7 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             detectionLoopRef.current.stop();
             detectionLoopRef.current = null;
         }
-        const video = document.getElementById('barcode-scanner-video');
+        const video = document.getElementById('edit-barcode-scanner-video');
         if (video && video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
             video.srcObject = null;
@@ -354,19 +395,20 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
      * Handle back button with unsaved changes check
      */
     const handleBackClick = () => {
-        const hasUnsavedChanges = !!(barcode || productName || costPrice || salePrice || stock || productImage);
-        onBack(hasUnsavedChanges);
+        onBack(hasChanges());
     };
 
     return html`
-        <div class="tab-content active" id="add-product-tab">
+        <div class="tab-content active" id="edit-product-tab">
             <!-- Header -->
             <div class="tab-header">
                 <button class="btn-icon-only" onClick=${handleBackClick}>
                     <${Icons.ArrowRight} />
                 </button>
-                <h2 class="tab-title">إضافة منتج</h2>
-                <div style="width: 40px;"></div>
+                <h2 class="tab-title">تعديل المنتج</h2>
+                <button class="btn-icon-only delete-btn" onClick=${handleDelete}>
+                    <${Icons.Trash} />
+                </button>
             </div>
 
             <!-- Form -->
@@ -521,10 +563,7 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
 
                 <!-- 6. Stock -->
                 <div class="form-group">
-                    <label class="form-label">
-                        المخزون
-                        <span class="form-label-optional">(اختياري)</span>
-                    </label>
+                    <label class="form-label">المخزون</label>
                     <div class="input-with-unit">
                         <input
                             type="number"
@@ -558,9 +597,21 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             <!-- Save Button (Fixed at Bottom) -->
             <div class="form-actions">
                 <button class="btn-primary" onClick=${handleSave}>
-                    حفظ المنتج
+                    حفظ التغييرات
                 </button>
             </div>
+
+            <!-- Delete Confirmation Dialog -->
+            ${showDeleteConfirm && html`
+                <${ConfirmDialog}
+                    message="هل أنت متأكد من حذف هذا المنتج؟"
+                    confirmText="حذف"
+                    cancelText="إلغاء"
+                    onConfirm=${confirmDelete}
+                    onCancel=${cancelDelete}
+                    danger=${true}
+                />
+            `}
 
             <!-- Barcode Scanner Modal -->
             ${showScanner && html`
@@ -583,7 +634,7 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
 
                     <!-- Camera View -->
                     <div class="scanner-camera">
-                        <video id="barcode-scanner-video" class="scanner-video" autoplay playsinline muted></video>
+                        <video id="edit-barcode-scanner-video" class="scanner-video" autoplay playsinline muted></video>
 
                         <!-- Dark overlay around scan area -->
                         <div class="scanner-dark-overlay">
