@@ -7,6 +7,7 @@
 
 import { html, useState, useEffect, useRef } from '../lib/preact.js';
 import { Icons } from './Icons.js';
+import { ConfirmDialog } from './ConfirmDialog.js';
 import { productDB, transactionDB } from '../lib/db.js';
 import { formatCurrency, vibrate } from '../utils/helpers.js';
 import { useProducts } from '../hooks/useProducts.js';
@@ -49,6 +50,9 @@ export function SellTab({ isActive }) {
     // Item editor (for both sell tab and scanner cart)
     const [selectedItem, setSelectedItem] = useState(null);
 
+    // Cancel sale confirmation
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
     // Calculate totals
     const subtotal = cart.reduce((sum, item) => sum + (item.product.salePrice * item.quantity), 0);
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -71,6 +75,12 @@ export function SellTab({ isActive }) {
     useEffect(() => {
         const handleBackButton = (e) => {
             // Check if any modal is open and close it instead of navigating back
+            if (showCancelConfirm) {
+                e.preventDefault();
+                setShowCancelConfirm(false);
+                history.pushState(null, '', location.href);
+                return;
+            }
             if (selectedItem) {
                 e.preventDefault();
                 setSelectedItem(null);
@@ -101,10 +111,17 @@ export function SellTab({ isActive }) {
                 history.pushState(null, '', location.href);
                 return;
             }
+            // If cart has items and no modal is open, ask to cancel sale
+            if (cart.length > 0) {
+                e.preventDefault();
+                setShowCancelConfirm(true);
+                history.pushState(null, '', location.href);
+                return;
+            }
         };
 
-        // Push initial state so we can intercept back button
-        if (showScanner || showScannerCart || notFoundBarcode || showQuickAdd || selectedItem) {
+        // Push initial state so we can intercept back button (also when cart has items)
+        if (showScanner || showScannerCart || notFoundBarcode || showQuickAdd || selectedItem || showCancelConfirm || cart.length > 0) {
             history.pushState(null, '', location.href);
             window.addEventListener('popstate', handleBackButton);
         }
@@ -112,7 +129,7 @@ export function SellTab({ isActive }) {
         return () => {
             window.removeEventListener('popstate', handleBackButton);
         };
-    }, [showScanner, showScannerCart, notFoundBarcode, showQuickAdd, selectedItem]);
+    }, [showScanner, showScannerCart, notFoundBarcode, showQuickAdd, selectedItem, showCancelConfirm, cart.length]);
 
     // Show toast notification
     const showToast = (message, type = 'success', duration = 2000) => {
@@ -222,27 +239,54 @@ export function SellTab({ isActive }) {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: facing,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
                     // Request continuous autofocus for better barcode scanning
-                    focusMode: { ideal: 'continuous' }
+                    focusMode: { ideal: 'continuous' },
+                    // Request higher frame rate for smoother detection
+                    frameRate: { ideal: 30, min: 15 }
                 }
             });
 
-            // Apply 1.5x zoom if supported (helps with barcode scanning)
+            // Apply advanced camera settings for better low-light performance
             try {
                 const track = stream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
+                const advancedConstraints = [];
+
+                // Apply zoom (1.5x helps with barcode scanning)
                 if (capabilities.zoom) {
-                    const minZoom = capabilities.zoom.min;
-                    const maxZoom = capabilities.zoom.max;
-                    const targetZoom = Math.min(1.5, maxZoom);
-                    if (targetZoom > minZoom) {
-                        await track.applyConstraints({ advanced: [{ zoom: targetZoom }] });
+                    const targetZoom = Math.min(1.5, capabilities.zoom.max);
+                    if (targetZoom > capabilities.zoom.min) {
+                        advancedConstraints.push({ zoom: targetZoom });
                     }
                 }
+
+                // Enable exposure compensation for better low-light
+                if (capabilities.exposureCompensation) {
+                    // Boost exposure slightly for darker environments
+                    const maxExposure = capabilities.exposureCompensation.max;
+                    const targetExposure = Math.min(1.0, maxExposure);
+                    advancedConstraints.push({ exposureCompensation: targetExposure });
+                }
+
+                // Set exposure mode to continuous for auto-adjustment
+                if (capabilities.exposureMode && capabilities.exposureMode.includes('continuous')) {
+                    advancedConstraints.push({ exposureMode: 'continuous' });
+                }
+
+                // Set white balance to auto
+                if (capabilities.whiteBalanceMode && capabilities.whiteBalanceMode.includes('continuous')) {
+                    advancedConstraints.push({ whiteBalanceMode: 'continuous' });
+                }
+
+                // Apply all constraints
+                if (advancedConstraints.length > 0) {
+                    await track.applyConstraints({ advanced: advancedConstraints });
+                }
             } catch (e) {
-                // Zoom not supported, continue without it
+                // Advanced settings not supported, continue without them
+                console.log('Advanced camera settings not supported:', e.message);
             }
             streamRef.current = stream;
             video.srcObject = stream;
@@ -593,6 +637,15 @@ export function SellTab({ isActive }) {
         return item ? item.quantity : 0;
     };
 
+    // Cancel sale - clear cart
+    const handleCancelSale = () => {
+        vibrate();
+        setShowCancelConfirm(false);
+        setCart([]);
+        setShowScannerCart(false);
+        showToast('تم إلغاء البيع', 'error', 2000);
+    };
+
     return html`
         <div class="tab-content ${isActive ? 'active' : ''}" id="sell-tab">
             <!-- Header with Search -->
@@ -604,10 +657,12 @@ export function SellTab({ isActive }) {
                     value=${searchQuery}
                     onInput=${(e) => handleSearch(e.target.value)}
                 />
-                <button class="btn-icon-only scan-btn" onClick=${openScanner}>
-                    <${Icons.Barcode} />
-                </button>
             </div>
+
+            <!-- Floating Scan Button -->
+            <button class="sell-scan-fab ${cart.length > 0 ? 'with-cart' : ''}" onClick=${openScanner}>
+                <${Icons.Barcode} />
+            </button>
 
             <!-- Products List -->
             <div class="products-list">
@@ -643,7 +698,7 @@ export function SellTab({ isActive }) {
             <!-- Cart Bar -->
             ${cart.length > 0 && html`
                 <div class="sell-cart-bar">
-                    <div class="sell-cart-info">
+                    <div class="sell-cart-info" onClick=${() => setShowScannerCart(true)}>
                         <span class="sell-cart-count">${totalItems} منتج</span>
                         <span class="sell-cart-total">${formatCurrency(subtotal)}</span>
                     </div>
@@ -653,6 +708,7 @@ export function SellTab({ isActive }) {
                             onClick=${() => setShowScannerCart(true)}
                         >
                             <${Icons.ShoppingCart} />
+                            ${totalItems > 0 && html`<span class="cart-badge">${totalItems}</span>`}
                         </button>
                         <button
                             class="sell-cart-checkout"
@@ -852,6 +908,11 @@ export function SellTab({ isActive }) {
                                     >
                                         ${isProcessing ? 'جاري...' : `ادفع ${formatCurrency(subtotal)}`}
                                     </button>
+                                    ${cart.length > 0 && html`
+                                        <button class="btn-cancel-sale" onClick=${() => setShowCancelConfirm(true)}>
+                                            إلغاء البيع
+                                        </button>
+                                    `}
                                 </div>
                             </div>
                         </div>
@@ -881,31 +942,6 @@ export function SellTab({ isActive }) {
                             </div>
                         </div>
                     `}
-                </div>
-            `}
-
-            <!-- Item Editor (outside scanner - for sell tab cart) -->
-            ${selectedItem && !showScanner && html`
-                <div class="modal-overlay" onClick=${() => setSelectedItem(null)}>
-                    <div class="item-editor-modal" onClick=${(e) => e.stopPropagation()}>
-                        <button class="item-editor-close" onClick=${() => setSelectedItem(null)}>×</button>
-                        <div class="item-editor-header">
-                            <span class="item-editor-name">${selectedItem.product.name}</span>
-                            <span class="item-editor-price">${formatCurrency(selectedItem.product.salePrice)}</span>
-                        </div>
-                        <div class="item-editor-qty">
-                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.product.id, selectedItem.quantity - 1)}>−</button>
-                            <span class="qty-value">${selectedItem.quantity}</span>
-                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.product.id, selectedItem.quantity + 1)}>+</button>
-                        </div>
-                        <div class="item-editor-subtotal">
-                            ${formatCurrency(selectedItem.product.salePrice * selectedItem.quantity)}
-                        </div>
-                        <div class="item-editor-actions">
-                            <button class="btn-remove" onClick=${() => updateQuantity(selectedItem.product.id, 0)}>حذف</button>
-                            <button class="btn-done" onClick=${() => setSelectedItem(null)}>تم</button>
-                        </div>
-                    </div>
                 </div>
             `}
 
@@ -942,6 +978,36 @@ export function SellTab({ isActive }) {
                             >
                                 ${isProcessing ? 'جاري...' : `ادفع ${formatCurrency(subtotal)}`}
                             </button>
+                            ${cart.length > 0 && html`
+                                <button class="btn-cancel-sale" onClick=${() => setShowCancelConfirm(true)}>
+                                    إلغاء البيع
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `}
+
+            <!-- Item Editor (outside scanner - for sell tab cart) -->
+            ${selectedItem && !showScanner && html`
+                <div class="modal-overlay" onClick=${() => setSelectedItem(null)}>
+                    <div class="item-editor-modal" onClick=${(e) => e.stopPropagation()}>
+                        <button class="item-editor-close" onClick=${() => setSelectedItem(null)}>×</button>
+                        <div class="item-editor-header">
+                            <span class="item-editor-name">${selectedItem.product.name}</span>
+                            <span class="item-editor-price">${formatCurrency(selectedItem.product.salePrice)}</span>
+                        </div>
+                        <div class="item-editor-qty">
+                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.product.id, selectedItem.quantity - 1)}>−</button>
+                            <span class="qty-value">${selectedItem.quantity}</span>
+                            <button class="qty-btn" onClick=${() => updateQuantity(selectedItem.product.id, selectedItem.quantity + 1)}>+</button>
+                        </div>
+                        <div class="item-editor-subtotal">
+                            ${formatCurrency(selectedItem.product.salePrice * selectedItem.quantity)}
+                        </div>
+                        <div class="item-editor-actions">
+                            <button class="btn-remove" onClick=${() => updateQuantity(selectedItem.product.id, 0)}>حذف</button>
+                            <button class="btn-done" onClick=${() => setSelectedItem(null)}>تم</button>
                         </div>
                     </div>
                 </div>
@@ -952,6 +1018,18 @@ export function SellTab({ isActive }) {
                 <div class="sell-toast ${toast.type}">
                     <span class="toast-message">${toast.message}</span>
                 </div>
+            `}
+
+            <!-- Cancel Sale Confirmation -->
+            ${showCancelConfirm && html`
+                <${ConfirmDialog}
+                    message="هل تريد إلغاء البيع وحذف جميع المنتجات من السلة؟"
+                    confirmText="إلغاء البيع"
+                    cancelText="العودة"
+                    danger=${true}
+                    onConfirm=${handleCancelSale}
+                    onCancel=${() => setShowCancelConfirm(false)}
+                />
             `}
         </div>
     `;

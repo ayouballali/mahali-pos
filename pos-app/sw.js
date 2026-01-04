@@ -4,7 +4,7 @@
  * Falls back to cache when offline
  */
 
-const CACHE_NAME = 'mahali-pos-v12';
+const CACHE_NAME = 'mahali-pos-v24';
 const urlsToCache = [
     './',
     './index.html',

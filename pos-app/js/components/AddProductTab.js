@@ -204,25 +204,51 @@ export function AddProductTab({ onBack, onSave, onUnsavedChangesUpdate }) {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: facing,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    focusMode: { ideal: 'continuous' },
+                    frameRate: { ideal: 30, min: 15 }
                 }
             });
 
-            // Apply 1.5x zoom if supported
+            // Apply advanced camera settings for better low-light performance
             try {
                 const track = stream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
+                const advancedConstraints = [];
+
+                // Apply zoom (1.5x helps with barcode scanning)
                 if (capabilities.zoom) {
-                    const minZoom = capabilities.zoom.min;
-                    const maxZoom = capabilities.zoom.max;
-                    const targetZoom = Math.min(1.5, maxZoom);
-                    if (targetZoom > minZoom) {
-                        await track.applyConstraints({ advanced: [{ zoom: targetZoom }] });
+                    const targetZoom = Math.min(1.5, capabilities.zoom.max);
+                    if (targetZoom > capabilities.zoom.min) {
+                        advancedConstraints.push({ zoom: targetZoom });
                     }
                 }
+
+                // Enable exposure compensation for better low-light
+                if (capabilities.exposureCompensation) {
+                    const maxExposure = capabilities.exposureCompensation.max;
+                    const targetExposure = Math.min(1.0, maxExposure);
+                    advancedConstraints.push({ exposureCompensation: targetExposure });
+                }
+
+                // Set exposure mode to continuous for auto-adjustment
+                if (capabilities.exposureMode && capabilities.exposureMode.includes('continuous')) {
+                    advancedConstraints.push({ exposureMode: 'continuous' });
+                }
+
+                // Set white balance to auto
+                if (capabilities.whiteBalanceMode && capabilities.whiteBalanceMode.includes('continuous')) {
+                    advancedConstraints.push({ whiteBalanceMode: 'continuous' });
+                }
+
+                // Apply all constraints
+                if (advancedConstraints.length > 0) {
+                    await track.applyConstraints({ advanced: advancedConstraints });
+                }
             } catch (e) {
-                // Zoom not supported
+                // Advanced settings not supported, continue without them
+                console.log('Advanced camera settings not supported:', e.message);
             }
 
             streamRef.current = stream;

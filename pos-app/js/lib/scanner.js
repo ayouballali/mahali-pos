@@ -74,9 +74,44 @@ export const getCameraConstraints = (facingMode = 'environment') => ({
 });
 
 /**
+ * Enhance image contrast for better barcode detection in low light
+ * Uses simple contrast stretching algorithm
+ *
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {number} width - Image width
+ * @param {number} height - Image height
+ */
+const enhanceContrast = (ctx, width, height) => {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+
+    // Find min and max brightness
+    let min = 255, max = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        if (brightness < min) min = brightness;
+        if (brightness > max) max = brightness;
+    }
+
+    // Only enhance if image is dark or low contrast
+    const range = max - min;
+    if (range < 100 || max < 180) {
+        // Stretch contrast
+        const scale = 255 / (range || 1);
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, (data[i] - min) * scale);     // R
+            data[i + 1] = Math.min(255, (data[i + 1] - min) * scale); // G
+            data[i + 2] = Math.min(255, (data[i + 2] - min) * scale); // B
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+};
+
+/**
  * Crop video frame to scan region (center rectangle)
  * Reduces pixels to analyze by 70-80%, significantly faster detection
  * Smaller area = better camera autofocus on barcode
+ * Now includes contrast enhancement for low-light conditions
  *
  * @param {HTMLVideoElement} video - Video element
  * @param {Object} options - Crop options
@@ -88,7 +123,8 @@ export const cropToScanRegion = (video, options = {}) => {
         topPercent = 35,
         bottomPercent = 35,
         leftPercent = 8,
-        rightPercent = 8
+        rightPercent = 8,
+        enhanceImage = true
     } = options;
 
     const canvas = document.createElement('canvas');
@@ -110,6 +146,15 @@ export const cropToScanRegion = (video, options = {}) => {
         cropLeft, cropTop, cropWidth, cropHeight,
         0, 0, cropWidth, cropHeight
     );
+
+    // Enhance contrast for better low-light detection
+    if (enhanceImage && cropWidth > 0 && cropHeight > 0) {
+        try {
+            enhanceContrast(ctx, cropWidth, cropHeight);
+        } catch (e) {
+            // Ignore enhancement errors
+        }
+    }
 
     return canvas;
 };
