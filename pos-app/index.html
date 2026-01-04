@@ -12,22 +12,58 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
     <!-- App Root -->
     <div id="app"></div>
 
     <!-- Preact from CDN (no build tools needed!) -->
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=9"></script>
 
     <!-- Register Service Worker for PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                    .then(reg => {
+                        console.log('✅ Service Worker registered:', reg.scope);
+
+                        // Check for updates periodically (every 5 minutes)
+                        setInterval(() => {
+                            reg.update();
+                        }, 5 * 60 * 1000);
+
+                        // Listen for new service worker waiting
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            console.log('🔄 New Service Worker found, installing...');
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available, reload to get it
+                                    console.log('✅ New version available! Reloading...');
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.error('❌ Service Worker registration failed:', err));
+            });
+
+            // Listen for messages from service worker (e.g., update notifications)
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SW_UPDATED') {
+                    console.log('🔄 Service Worker updated to:', event.data.version);
+                    // Reload to get latest files
+                    window.location.reload();
+                }
+            });
+
+            // Handle controller change (new SW took over)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                console.log('🔄 New Service Worker controlling page, reloading...');
+                window.location.reload();
             });
         }
 

@@ -2,13 +2,13 @@
  * Home Tab Component
  * Displays dashboard with greeting, summary, and activity
  *
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { html, useState, useEffect } from '../lib/preact.js';
 import { Icons } from './Icons.js';
 import { getGreeting, formatCurrency } from '../utils/helpers.js';
-import { todayStats } from '../data/mockData.js';
+import { transactionDB } from '../lib/db.js';
 
 /**
  * Home Tab Component
@@ -18,6 +18,30 @@ import { todayStats } from '../data/mockData.js';
  */
 export function HomeTab({ isActive }) {
     const [greeting, setGreeting] = useState(getGreeting());
+    const [stats, setStats] = useState({
+        sales: 0,
+        profit: 0,
+        salesCount: 0,
+        itemsSold: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    // Load today's stats from database
+    const loadStats = async () => {
+        try {
+            const todayStats = await transactionDB.getStats('today');
+            setStats({
+                sales: todayStats.sales,
+                profit: todayStats.profit,
+                salesCount: todayStats.salesCount,
+                itemsSold: todayStats.itemsSold
+            });
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         // Update greeting every minute
@@ -27,8 +51,14 @@ export function HomeTab({ isActive }) {
         return () => clearInterval(interval);
     }, []);
 
-    // Get stats from mock data
-    const { sales, profit, salesCount, itemsSold } = todayStats;
+    // Load stats when tab becomes active
+    useEffect(() => {
+        if (isActive) {
+            loadStats();
+        }
+    }, [isActive]);
+
+    const { sales, profit, salesCount, itemsSold } = stats;
 
     return html`
         <div class="tab-content ${isActive ? 'active' : ''}" id="home-tab">
@@ -47,12 +77,12 @@ export function HomeTab({ isActive }) {
                 <div class="summary-header">اليوم (Today)</div>
                 <div class="summary-stats">
                     <div class="stat">
-                        <div class="stat-value">${formatCurrency(sales, { decimals: 0 })}</div>
+                        <div class="stat-value">${loading ? '...' : formatCurrency(sales, { decimals: 0 })}</div>
                         <div class="stat-label">المبيعات<br />(Sales)</div>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
-                        <div class="stat-value">${formatCurrency(profit, { decimals: 0 })}</div>
+                        <div class="stat-value">${loading ? '...' : formatCurrency(profit, { decimals: 0 })}</div>
                         <div class="stat-label">الربح<br />(Profit)</div>
                     </div>
                 </div>

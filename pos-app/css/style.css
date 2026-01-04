@@ -57,35 +57,23 @@ body {
     position: relative;
 }
 
-.content-wrapper > .tab-content {
-    animation: fadeIn 0.2s ease-in-out;
-}
+/* No animation - prevents FAB jumping */
 
 /* Show active tab */
 #home-tab.active,
 #sell-tab.active,
 #products-tab.active,
 #reports-tab.active,
-#add-product-tab.active {
+#add-product-tab.active,
+#edit-product-tab.active {
     display: block !important;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ============================================
    Bottom Navigation
    ============================================ */
 .bottom-nav {
-    position: fixed;
+    position: fixed !important;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -162,7 +150,7 @@ body {
 .brand-corner {
     position: absolute;
     top: 16px;
-    right: 16px;
+    right: 16px !important;
     opacity: 0.4;
     transition: opacity 0.2s;
     color: #22c55e;
@@ -623,6 +611,20 @@ body {
 .tab-header-actions .btn-icon-only svg {
     width: 24px;
     height: 24px;
+}
+
+/* Delete button in header */
+.tab-header .delete-btn {
+    color: #ef4444;
+}
+
+.tab-header .delete-btn:active {
+    background: #fef2f2;
+}
+
+.tab-header .delete-btn svg {
+    width: 22px;
+    height: 22px;
 }
 
 /* Search Container */
@@ -1145,6 +1147,12 @@ button {
     display: flex;
     gap: 16px;
     align-items: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.product-card:active {
+    background-color: #f1f5f9;
 }
 
 .product-image {
@@ -1190,6 +1198,35 @@ button {
     text-align: right;
 }
 
+/* Product card in-cart state (for Sell tab) */
+.product-card.in-cart {
+    background: #f0fdf4;
+    border-right: 3px solid #22c55e;
+}
+
+/* Product badge (quantity in cart) */
+.product-badge {
+    position: absolute;
+    top: 8px;
+    left: 16px;
+    background: #22c55e;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+
+/* Make product-card position relative for badge positioning */
+.products-list .product-card {
+    position: relative;
+}
+
 /* Add Product Inline Button */
 .add-product-inline-btn {
     width: 100%;
@@ -1224,7 +1261,7 @@ button {
    Confirmation Dialog
    ============================================ */
 .dialog-overlay {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
@@ -1318,6 +1355,16 @@ button {
     transform: scale(0.98);
 }
 
+.dialog-btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.dialog-btn-danger:active {
+    background: #dc2626;
+    transform: scale(0.98);
+}
+
 /* ============================================
    Sell Tab - Loyverse Style
    ============================================ */
@@ -1362,89 +1409,49 @@ button {
     background: #16a34a;
 }
 
-/* Products List */
-.sell-products-list {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 100px;
-}
-
-.sell-product-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    background: white;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.sell-product-item:active {
-    background: #f8fafc;
-}
-
-.sell-product-item.in-cart {
-    background: #f0fdf4;
-}
-
-.sell-product-image {
-    flex-shrink: 0;
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-}
-
-.sell-product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.sell-product-image svg {
-    width: 24px;
-    height: 24px;
-}
-
-.sell-product-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.sell-product-name {
-    font-size: 16px;
-    font-weight: 500;
-    color: #1e293b;
-    margin-bottom: 4px;
-}
-
-.sell-product-price {
-    font-size: 14px;
-    color: #64748b;
-}
-
-.sell-product-badge {
-    width: 32px;
-    height: 32px;
-    background: #22c55e;
+/* Floating Scan Button for Sell Tab */
+.sell-scan-fab {
+    position: fixed !important;
+    bottom: 100px;
+    right: 20px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;
+    border: none;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+    z-index: 99;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sell-scan-fab:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.sell-scan-fab svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* When cart is showing, move FAB up */
+.sell-scan-fab.with-cart {
+    bottom: 180px;
+}
+
+/* Sell Tab - Products List uses shared .products-list and .product-card styles */
+#sell-tab .products-list {
+    padding-bottom: 180px; /* Extra space for cart bar */
 }
 
 /* Cart Bar (Bottom) */
 .sell-cart-bar {
-    position: fixed;
+    position: fixed !important;
     bottom: 80px;
     left: 50%;
     transform: translateX(-50%);
@@ -1460,42 +1467,94 @@ button {
     z-index: 100;
 }
 
-.cart-summary-info {
+.sell-cart-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
 }
 
-.cart-items-count {
+.sell-cart-count {
     font-size: 14px;
     color: #64748b;
-    margin-bottom: 4px;
 }
 
-.cart-total-amount {
+.sell-cart-total {
     font-size: 20px;
     font-weight: 700;
     color: #22c55e;
 }
 
-.btn-view-cart {
-    padding: 12px 24px;
-    background: #22c55e;
-    color: white;
+.sell-cart-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.sell-cart-view {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: 12px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.btn-view-cart:active {
-    background: #16a34a;
+.sell-cart-view:active {
+    background: #e2e8f0;
     transform: scale(0.98);
+}
+
+.sell-cart-view .cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.sell-cart-checkout {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sell-cart-checkout:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+}
+
+.sell-cart-checkout:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Modal Overlay */
 .modal-overlay {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
@@ -1504,9 +1563,21 @@ button {
     backdrop-filter: blur(4px);
     z-index: 10000;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-    animation: fadeIn 0.2s ease-out;
+    padding: 20px;
+}
+
+/* Cart modal slides from bottom */
+.modal-overlay .scanner-cart-modal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+    animation: slideUp 0.3s ease-out;
 }
 
 .modal-container {
@@ -1673,6 +1744,40 @@ button {
     transform: scale(0.98);
 }
 
+/* Sell Tab Global Toast */
+.sell-toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #22c55e;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 28px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    animation: toastFadeIn 0.3s ease-out;
+    z-index: 9999;
+    text-align: center;
+}
+
+.sell-toast.error {
+    background: #ef4444;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
 /* Item Editor Modal */
 .item-editor-body {
     padding: 24px 20px;
@@ -1758,8 +1863,1065 @@ button {
 }
 
 /* ============================================
+   Full Screen Scanner
+   ============================================ */
+
+.scanner-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scanner Header */
+.scanner-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+}
+
+.scanner-close-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.scanner-close-btn:active {
+    background: rgba(255,255,255,0.3);
+}
+
+.scanner-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scanner-control-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.scanner-control-btn:active {
+    background: rgba(255,255,255,0.3);
+}
+
+.scanner-control-btn.active {
+    background: #22c55e;
+}
+
+.scanner-cart-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.scanner-cart-btn:active {
+    background: rgba(255,255,255,0.3);
+}
+
+.scanner-cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 22px;
+    height: 22px;
+    background: #22c55e;
+    color: white;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.scanner-cart-badge.bounce {
+    animation: badgeBounce 0.3s ease-out;
+}
+
+@keyframes badgeBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+
+/* Scanner Camera */
+.scanner-camera {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.scanner-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Scanner Dark Overlay - shadows area outside scan box */
+/* Smaller, focused scan area for better autofocus on barcodes */
+.scanner-dark-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.scanner-dark-overlay-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-dark-overlay-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-dark-overlay-left {
+    position: absolute;
+    top: 35%;
+    bottom: 35%;
+    left: 0;
+    width: 8%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-dark-overlay-right {
+    position: absolute;
+    top: 35%;
+    bottom: 35%;
+    right: 0;
+    width: 8%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.scanner-placeholder-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.scanner-placeholder-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.scanner-placeholder p {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.scanner-activate-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.scanner-activate-btn:active {
+    background: #16a34a;
+}
+
+/* Scan Line Animation */
+.scan-line {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ef4444, #ef4444, transparent);
+    box-shadow: 0 0 10px #ef4444, 0 0 20px #ef4444;
+    animation: scanMove 1.5s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+    0%, 100% { top: 35%; }
+    50% { top: 65%; }
+}
+
+/* Scanner Freeze Effect - Success (Green) */
+.scanner-freeze-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(34, 197, 94, 0.3);
+    pointer-events: none;
+    animation: freezeFlashSuccess 0.3s ease-out;
+    z-index: 5;
+}
+
+@keyframes freezeFlashSuccess {
+    0% { background: rgba(34, 197, 94, 0.8); }
+    100% { background: rgba(34, 197, 94, 0.2); }
+}
+
+/* Scanner Freeze Effect - Not Found (Orange) */
+.scanner-freeze-overlay.notfound {
+    animation: freezeFlashNotFound 0.3s ease-out;
+}
+
+@keyframes freezeFlashNotFound {
+    0% { background: rgba(249, 115, 22, 0.8); }
+    100% { background: rgba(249, 115, 22, 0.2); }
+}
+
+/* Scanner Frame */
+.scanner-frame {
+    position: absolute;
+    top: 35%;
+    left: 8%;
+    right: 8%;
+    bottom: 35%;
+    pointer-events: none;
+}
+
+.scanner-corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: white;
+    border-style: solid;
+    border-width: 0;
+}
+
+.scanner-corner.top-left {
+    top: 0;
+    left: 0;
+    border-top-width: 3px;
+    border-left-width: 3px;
+}
+
+.scanner-corner.top-right {
+    top: 0;
+    right: 0;
+    border-top-width: 3px;
+    border-right-width: 3px;
+}
+
+.scanner-corner.bottom-left {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+}
+
+.scanner-corner.bottom-right {
+    bottom: 0;
+    right: 0;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+}
+
+/* Green Flash on Successful Scan */
+.scanner-frame.flash-success {
+    animation: greenFlash 0.3s ease-out;
+}
+
+.scanner-frame.flash-success .scanner-corner {
+    border-color: #22c55e;
+}
+
+@keyframes greenFlash {
+    0% { box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.8); }
+    50% { box-shadow: inset 0 0 0 8px rgba(34, 197, 94, 0.5); }
+    100% { box-shadow: inset 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Orange Flash on Not Found */
+.scanner-frame.flash-notfound {
+    animation: orangeFlash 0.3s ease-out;
+}
+
+.scanner-frame.flash-notfound .scanner-corner {
+    border-color: #f97316;
+}
+
+@keyframes orangeFlash {
+    0% { box-shadow: inset 0 0 0 4px rgba(249, 115, 22, 0.8); }
+    50% { box-shadow: inset 0 0 0 8px rgba(249, 115, 22, 0.5); }
+    100% { box-shadow: inset 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+/* Scanner Hint Message */
+.scanner-hint {
+    position: absolute;
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Tap-to-Focus Indicator */
+.focus-indicator {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    margin-left: -40px;
+    margin-top: -40px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+    animation: focusPulse 1s ease-out forwards;
+}
+
+.focus-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    margin-top: -5px;
+    background: #fff;
+    border-radius: 50%;
+}
+
+.focus-indicator::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: focusRing 0.5s ease-out;
+}
+
+@keyframes focusPulse {
+    0% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes focusRing {
+    0% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+}
+
+/* Scanner Bottom Action Buttons */
+.scanner-bottom-actions {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    padding-bottom: 24px !important;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 60%, transparent 100%) !important;
+    z-index: 10001 !important;
+    box-sizing: border-box !important;
+}
+
+.scanner-bottom-btn {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 16px 20px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    position: relative !important;
+    min-height: 56px !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+}
+
+.scanner-bottom-btn.cart-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.scanner-bottom-btn.cart-btn:active {
+    background: rgba(255, 255, 255, 0.35) !important;
+}
+
+.scanner-bottom-btn.cart-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+.scanner-bottom-btn.pay-btn {
+    background: #22c55e !important;
+    color: white !important;
+    flex: 1.5 !important;
+}
+
+.scanner-bottom-btn.pay-btn:active {
+    background: #16a34a !important;
+}
+
+.scanner-bottom-btn.pay-btn:disabled {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    cursor: not-allowed !important;
+}
+
+.scanner-bottom-btn .btn-badge {
+    position: absolute !important;
+    top: -8px !important;
+    right: -8px !important;
+    background: #ef4444 !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 6px !important;
+}
+
+.pay-amount {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+}
+
+/* Scanner Toast */
+.scanner-toast {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #22c55e;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    animation: toastSlideUp 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 90%;
+    text-align: center;
+    z-index: 15;
+}
+
+.toast-icon {
+    font-size: 18px;
+}
+
+@keyframes toastSlideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Scanner Instructions (for AddProductTab scanner) */
+.scanner-instructions {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 10;
+}
+
+.scanner-instructions p {
+    color: white;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 24px;
+    margin: 0;
+}
+
+/* Scanner Overlay (for modals over camera) */
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 20;
+    overflow: visible;
+}
+
+/* Not Found Modal */
+.not-found-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    max-width: 320px;
+    width: 100%;
+}
+
+.not-found-modal h3 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    color: #1e293b;
+}
+
+.not-found-barcode {
+    font-family: monospace;
+    font-size: 18px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.not-found-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-skip {
+    flex: 1;
+    padding: 14px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-skip:active {
+    background: #e2e8f0;
+}
+
+.btn-quick-add {
+    flex: 1;
+    padding: 14px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-quick-add:active {
+    background: #16a34a;
+}
+
+/* Quick Add Modal */
+.quick-add-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+}
+
+.quick-add-modal h3 {
+    margin: 0 0 20px;
+    font-size: 20px;
+    color: #1e293b;
+    text-align: center;
+}
+
+.quick-add-form .form-group {
+    margin-bottom: 16px;
+}
+
+.quick-add-form label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.quick-add-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 14px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel:active {
+    background: #e2e8f0;
+}
+
+.btn-save {
+    flex: 1;
+    padding: 14px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-save:active {
+    background: #16a34a;
+}
+
+/* Scanner Cart Modal */
+.scanner-cart-modal {
+    direction: rtl;
+    background: white;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.scanner-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.scanner-cart-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.scanner-cart-header .btn-icon-only {
+    font-size: 24px;
+    color: #64748b;
+}
+
+.scanner-cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.cart-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 40px 20px;
+}
+
+.scanner-cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+}
+
+.scanner-cart-item:active {
+    background: #f8fafc;
+}
+
+.cart-item-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cart-item-name {
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.cart-item-qty {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.cart-item-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.scanner-cart-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 16px;
+    color: #64748b;
+}
+
+.cart-total-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.btn-continue-scan {
+    width: 100%;
+    padding: 14px;
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.btn-continue-scan:active {
+    background: #f8fafc;
+}
+
+.btn-pay {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-pay:active {
+    opacity: 0.9;
+}
+
+.btn-pay:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Item Editor Modal */
+.item-editor-modal {
+    direction: rtl;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    padding-top: 32px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    overflow: visible;
+    margin-top: 20px;
+}
+
+.item-editor-header {
+    margin-bottom: 20px;
+}
+
+.item-editor-name {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.item-editor-price {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.item-editor-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 36px;
+    height: 36px;
+    background: #ef4444;
+    border: 3px solid white;
+    border-radius: 50%;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    line-height: 1;
+}
+
+.item-editor-close:active {
+    background: #dc2626;
+    transform: scale(0.9);
+}
+
+.item-editor-qty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    direction: ltr;
+}
+
+.qty-btn {
+    width: 56px;
+    height: 56px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 12px;
+    font-size: 28px;
+    color: #1e293b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:active {
+    background: #e2e8f0;
+}
+
+.qty-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    min-width: 60px;
+}
+
+.item-editor-subtotal {
+    font-size: 24px;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 20px;
+}
+
+.item-editor-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-remove {
+    flex: 1;
+    padding: 14px;
+    background: white;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-remove:active {
+    background: #fef2f2;
+}
+
+.btn-done {
+    flex: 1;
+    padding: 14px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-done:active {
+    background: #16a34a;
+}
+
+/* ============================================
+   Floating Action Button (FAB)
+   ============================================ */
+.fab {
+    position: fixed !important;
+    bottom: 100px !important;
+    /* Center like bottom-nav, then offset to right edge */
+    left: 50%;
+    transform: translateX(calc(-50% + 250px)); /* 300px (half of 600px) - 50px margin */
+    max-width: calc(50% + 250px); /* Prevent going off-screen on small devices */
+    padding: 10px 18px;
+    border-radius: 24px;
+    background: white;
+    color: #22c55e;
+    border: 2px solid #22c55e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+    white-space: nowrap;
+    direction: ltr;
+    /* No animation or transition */
+    animation: none !important;
+    transition: none !important;
+}
+
+/* On smaller screens, position FAB at right edge with margin */
+@media (max-width: 600px) {
+    .fab {
+        left: auto;
+        right: 16px !important;
+        transform: none;
+    }
+}
+
+.fab:active {
+    background: #f0fdf4;
+}
+
+.fab svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ============================================
    Utility Classes
    ============================================ */
 .hidden {
+    display: none !important;
+}
+
+.fab-hidden {
     display: none !important;
 }
